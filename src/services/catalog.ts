@@ -72,14 +72,23 @@ export function toCard(p: CardRow, locale: AppLocale): ProductCardData {
 
 const published = { status: "ACTIVE" } satisfies Prisma.ProductWhereInput;
 
+/** Сначала товары с отметкой «Yangi», затем — просто последние опубликованные (главная не бывает пустой). */
 export async function getNewArrivals(locale: AppLocale, take = 8): Promise<ProductCardData[]> {
-  const rows = await prisma.product.findMany({
+  const fresh = await prisma.product.findMany({
     where: { ...published, isNew: true },
     orderBy: { publishedAt: "desc" },
     take,
     include: cardInclude(locale),
   });
-  return rows.map((r) => toCard(r, locale));
+  const rest = fresh.length < take
+    ? await prisma.product.findMany({
+        where: { ...published, id: { notIn: fresh.map((r) => r.id) } },
+        orderBy: { publishedAt: "desc" },
+        take: take - fresh.length,
+        include: cardInclude(locale),
+      })
+    : [];
+  return [...fresh, ...rest].map((r) => toCard(r, locale));
 }
 
 export async function getBestSellers(locale: AppLocale, take = 8): Promise<ProductCardData[]> {
