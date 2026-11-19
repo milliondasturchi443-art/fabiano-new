@@ -16,11 +16,14 @@ export interface ProductCardData {
   image: { url: string; width: number; height: number; alt: string } | null;
   hoverImage: { url: string; width: number; height: number; alt: string } | null;
   colors: { code: string; hex: string; name: string }[];
+  gender: "MEN" | "WOMEN" | "UNISEX";
+  categoryName: string | null;
 }
 
 export const cardInclude = (locale: AppLocale) =>
   ({
     translations: { where: { locale }, select: { name: true } },
+    category: { select: { translations: { where: { locale }, select: { name: true } } } },
     images: { orderBy: { sortOrder: "asc" }, take: 2, select: { storageKey: true, width: true, height: true, alt: true } },
     variants: {
       where: { isActive: true },
@@ -62,6 +65,8 @@ export function toCard(p: CardRow, locale: AppLocale): ProductCardData {
     image: img(p.images[0]),
     hoverImage: img(p.images[1]),
     colors: [...colors.values()],
+    gender: p.gender,
+    categoryName: p.category.translations[0]?.name ?? null,
   };
 }
 
@@ -138,4 +143,28 @@ export async function getActiveHero(locale: AppLocale): Promise<HeroData | null>
 
 export async function getStoreSettings() {
   return prisma.storeSettings.findUnique({ where: { id: "default" } });
+}
+
+/** Обложки для арок и блоков категорий: первое фото опубликованного товара каждого пола. */
+export async function getGenderCovers(): Promise<{ men: string | null; women: string | null }> {
+  const pick = async (gender: "MEN" | "WOMEN") => {
+    const img = await prisma.productImage.findFirst({
+      where: { product: { status: "ACTIVE", gender } },
+      orderBy: [{ product: { publishedAt: "desc" } }, { sortOrder: "asc" }],
+      select: { storageKey: true },
+    });
+    return mediaUrl(img?.storageKey);
+  };
+  const [men, women] = await Promise.all([pick("MEN"), pick("WOMEN")]);
+  return { men, women };
+}
+
+export async function getGenderCategoryNames(locale: AppLocale): Promise<{ men: string[]; women: string[] }> {
+  const rows = await prisma.category.findMany({
+    where: { isActive: true, parentId: null, gender: { in: ["MEN", "WOMEN"] } },
+    orderBy: { sortOrder: "asc" },
+    select: { gender: true, translations: { where: { locale }, select: { name: true } } },
+  });
+  const names = (g: "MEN" | "WOMEN") => rows.filter((r) => r.gender === g).map((r) => r.translations[0]?.name).filter((n): n is string => Boolean(n));
+  return { men: names("MEN"), women: names("WOMEN") };
 }

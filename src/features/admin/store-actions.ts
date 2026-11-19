@@ -182,3 +182,43 @@ export async function deleteDeliveryAction(form: FormData) {
   revalidatePath("/admin/settings");
   redirect("/admin/settings#delivery");
 }
+
+// ── Murojaatlar (заявки) ─────────────────────────────
+
+export async function toggleLeadAction(form: FormData) {
+  await requireAdmin("orders:read");
+  const id = String(form.get("id") ?? "");
+  const lead = await prisma.lead.findUnique({ where: { id } });
+  if (lead) {
+    const done = lead.status === "NEW";
+    await prisma.lead.update({ where: { id }, data: { status: done ? "DONE" : "NEW", handledAt: done ? new Date() : null } });
+  }
+  revalidatePath("/admin/leads");
+}
+
+export async function deleteLeadAction(form: FormData) {
+  await requireAdmin("*");
+  await prisma.lead.deleteMany({ where: { id: String(form.get("id") ?? "") } });
+  revalidatePath("/admin/leads");
+}
+
+// ── Matnlar: e'lon va «Biz haqimizda» ─────────────────
+
+export async function saveTextsAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const admin = await requireAdmin("*");
+  const pick = (k: string) => {
+    const v = String(form.get(k) ?? "").trim();
+    return v ? v.slice(0, k.startsWith("about") ? 2000 : 160) : undefined;
+  };
+  const current = await prisma.storeSettings.findUnique({ where: { id: "default" } });
+  const prev = (current?.homeContent ?? {}) as Record<string, unknown>;
+  const homeContent = {
+    ...prev,
+    announce: { uz: pick("announce_uz"), ru: pick("announce_ru"), en: pick("announce_en") },
+    about: { uz: pick("about_uz"), ru: pick("about_ru"), en: pick("about_en") },
+  };
+  await prisma.storeSettings.upsert({ where: { id: "default" }, create: { id: "default", homeContent }, update: { homeContent } });
+  await prisma.auditLog.create({ data: { actorId: admin.id, action: "settings.texts", entity: "StoreSettings", entityId: "default" } });
+  revalidatePath("/", "layout");
+  return { ok: "Matnlar saqlandi." };
+}

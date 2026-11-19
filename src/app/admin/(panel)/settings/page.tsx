@@ -4,7 +4,7 @@ import { formatUzPhone } from "@/lib/phone";
 import { localized } from "@/services/catalog";
 import { requireAdmin } from "@/features/admin/guard";
 import { changePasswordAction } from "@/features/admin/auth-actions";
-import { createDeliveryAction, deleteDeliveryAction, saveSettingsAction, toggleDeliveryAction, togglePaymentAction } from "@/features/admin/store-actions";
+import { createDeliveryAction, deleteDeliveryAction, saveSettingsAction, saveTextsAction, toggleDeliveryAction, togglePaymentAction } from "@/features/admin/store-actions";
 import { ActionForm, ConfirmButton, inputCls, labelCls } from "@/components/admin/ui";
 
 export const metadata = { title: "Sozlamalar" };
@@ -21,6 +21,7 @@ export default async function AdminSettings() {
   const paymeReady = Boolean(process.env.PAYME_MERCHANT_ID && process.env.PAYME_SECRET_KEY);
   const clickReady = Boolean(process.env.CLICK_SERVICE_ID && process.env.CLICK_SECRET_KEY);
   const locales = s?.enabledLocales ?? ["uz", "ru"];
+  const texts = (s?.homeContent ?? {}) as { announce?: Record<string, string | undefined>; about?: Record<string, string | undefined> };
 
   return (
     <div className="space-y-8">
@@ -97,10 +98,23 @@ export default async function AdminSettings() {
             <legend className={labelCls}>Sayt tillari</legend>
             <div className="mt-2 flex gap-6 text-sm">
               <label className="flex items-center gap-2"><input type="checkbox" checked disabled className="h-4 w-4" /> Oʻzbekcha (asosiy)</label>
-              <label className="flex items-center gap-2"><input type="checkbox" name="enabledLocales" value="ru" defaultChecked={locales.includes("ru")} className="h-4 w-4 accent-[var(--color-wine)]" /> Ruscha</label>
-              <label className="flex items-center gap-2"><input type="checkbox" name="enabledLocales" value="en" defaultChecked={locales.includes("en")} className="h-4 w-4 accent-[var(--color-wine)]" /> Inglizcha</label>
+              <label className="flex items-center gap-2"><input type="checkbox" name="enabledLocales" value="ru" defaultChecked={locales.includes("ru")} className="h-4 w-4 accent-[var(--color-gold)]" /> Ruscha</label>
+              <label className="flex items-center gap-2"><input type="checkbox" name="enabledLocales" value="en" defaultChecked={locales.includes("en")} className="h-4 w-4 accent-[var(--color-gold)]" /> Inglizcha</label>
             </div>
           </fieldset>
+        </ActionForm>
+      </section>
+
+      <section id="texts" className="card p-6">
+        <h2 className="text-2xl">Matnlar</h2>
+        <p className="mt-2 text-xs text-muted">Eʼlon — sayt tepasidagi bordo qatorda chiqadi (boʻsh qoldirsangiz, koʻrinmaydi). «Biz haqimizda» — bosh sahifadagi blok matni.</p>
+        <ActionForm action={saveTextsAction} submit="Saqlash" className="mt-5 grid gap-4 md:grid-cols-3">
+          {(["uz", "ru", "en"] as const).map((l) => (
+            <label key={`a-${l}`}><span className={labelCls}>Eʼlon {l.toUpperCase()}</span><input name={`announce_${l}`} maxLength={160} defaultValue={texts.announce?.[l] ?? ""} placeholder={l === "uz" ? "Masalan: Toshkent boʻylab yetkazib berish" : ""} className={inputCls} /></label>
+          ))}
+          {(["uz", "ru", "en"] as const).map((l) => (
+            <label key={`b-${l}`}><span className={labelCls}>Biz haqimizda {l.toUpperCase()}</span><textarea name={`about_${l}`} rows={5} maxLength={2000} defaultValue={texts.about?.[l] ?? ""} className="field field-sm mt-1.5" /></label>
+          ))}
         </ActionForm>
       </section>
 

@@ -53,7 +53,7 @@ export function FilterForm({
             {facets.sizes.map((s) => (
               <label key={s} className="relative cursor-pointer">
                 <input type="checkbox" name="size" value={s} defaultChecked={filters.sizes.includes(s)} onChange={autoSubmit} className="peer sr-only" />
-                <span className="flex h-10 min-w-12 items-center justify-center border border-line px-3 text-xs font-medium transition-colors hover:border-muted peer-checked:border-wine peer-checked:bg-wine peer-checked:text-cream peer-focus-visible:outline peer-focus-visible:outline-1">
+                <span className="flex h-10 min-w-12 items-center justify-center border border-line px-3 text-xs font-medium transition-colors hover:border-muted peer-checked:border-gold peer-checked:bg-gold peer-checked:text-canvas peer-focus-visible:outline peer-focus-visible:outline-1">
                   {s}
                 </span>
               </label>
@@ -69,7 +69,7 @@ export function FilterForm({
               <label key={c.code} className="flex min-h-10 cursor-pointer items-center gap-3 text-sm">
                 <input type="checkbox" name="color" value={c.code} defaultChecked={filters.colors.includes(c.code)} onChange={autoSubmit} className="peer sr-only" />
                 <span
-                  className="h-5 w-5 shrink-0 rounded-full border border-ink/15 ring-offset-2 ring-offset-canvas peer-checked:ring-1 peer-checked:ring-wine"
+                  className="h-5 w-5 shrink-0 rounded-full border border-ink/15 ring-offset-2 ring-offset-canvas peer-checked:ring-1 peer-checked:ring-gold"
                   style={{ backgroundColor: c.hex }}
                 />
                 <span className="peer-checked:font-medium">{c.name}</span>
@@ -189,7 +189,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 function Check({ name, value, label, checked, onChange }: { name: string; value: string; label: string; checked: boolean; onChange: () => void }) {
   return (
     <label className="flex min-h-10 cursor-pointer items-center gap-3 text-sm">
-      <input type="checkbox" name={name} value={value} defaultChecked={checked} onChange={onChange} className="h-4 w-4 accent-[var(--color-wine)]" />
+      <input type="checkbox" name={name} value={value} defaultChecked={checked} onChange={onChange} className="h-4 w-4 accent-[var(--color-gold)]" />
       {label}
     </label>
   );

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
-import { serif, sans } from "@/lib/fonts";
+import { fontVars } from "@/lib/fonts";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { isLocale, locales, assertLocale } from "@/i18n/routing";
@@ -12,7 +12,7 @@ export function generateStaticParams() {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#3A0A13",
+  themeColor: "#0E0B0B",
   width: "device-width",
   initialScale: 1,
 };
@@ -49,8 +49,8 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${serif.variable} ${sans.variable}`}>
-      <body className="min-h-svh bg-canvas text-ink">
+    <html lang={locale} className={fontVars}>
+      <body className="min-h-svh bg-canvas pb-[calc(76px+env(safe-area-inset-bottom))] text-ink lg:pb-0">
         <ErrorListener />
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}

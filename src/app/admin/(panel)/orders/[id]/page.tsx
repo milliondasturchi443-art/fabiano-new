@@ -51,7 +51,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
                 const img = mediaUrl(i.imageKey);
                 return (
                   <li key={i.id} className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-4 py-3 text-sm">
-                    <div className="relative aspect-[3/4] bg-line">{img && <Image src={img} alt="" fill sizes="56px" className="object-cover" />}</div>
+                    <div className="relative aspect-[3/4] bg-surface">{img && <Image src={img} alt="" fill sizes="56px" className="object-cover" />}</div>
                     <div>
                       {i.productId ? <Link href={`/admin/products/${i.productId}`} className="link-underline">{i.productName}</Link> : i.productName}
                       <p className="text-xs text-muted">{i.sku} · {i.colorName} · {i.sizeCode}</p>

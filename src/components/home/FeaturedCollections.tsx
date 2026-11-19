@@ -49,7 +49,7 @@ export function FeaturedCollections({ title, explore, items }: { title: string; 
             <li key={c.slug} className={i === 0 ? "col-span-2 md:col-span-1" : ""}>
               <Link
                 href={`/collections/${c.slug}`}
-                className="group flex h-40 flex-col justify-between card p-5 transition-colors duration-500 hover:border-wine hover:bg-wine hover:text-cream md:h-52 md:p-6"
+                className="group flex h-40 flex-col justify-between card p-5 transition-colors duration-500 hover:border-gold hover:bg-wine hover:text-cream md:h-52 md:p-6"
               >
                 <span className="price text-xs text-muted transition-colors group-hover:text-champagne">{String(i + 1).padStart(2, "0")}</span>
                 <div>

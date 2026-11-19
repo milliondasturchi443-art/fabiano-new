@@ -177,7 +177,7 @@ function CartLine({
 
   return (
     <li className="grid grid-cols-[6.5rem_1fr] gap-4 py-6 md:grid-cols-[8rem_1fr] md:gap-6">
-      <Link href={`/product/${line.slug}`} className="relative block aspect-[3/4] overflow-hidden bg-line">
+      <Link href={`/product/${line.slug}`} className="relative block aspect-[3/4] overflow-hidden rounded-t-[60px] bg-surface">
         {line.image && <Image src={line.image} alt={line.name} fill sizes="128px" className="object-cover" />}
       </Link>
       <div className="flex min-w-0 flex-col">

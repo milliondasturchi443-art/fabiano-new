@@ -36,9 +36,10 @@ export function TryOnButton(detail: TryOnOpenDetail) {
         type="button"
         onClick={() => window.dispatchEvent(new CustomEvent<TryOnOpenDetail>(TRY_ON_OPEN_EVENT, { detail }))}
         disabled={!supported}
-        className="btn btn-outline w-full gap-3 disabled:cursor-not-allowed disabled:opacity-40"
+        className="relative flex h-[58px] w-full items-center justify-center gap-3 overflow-hidden border border-gold/60 bg-[radial-gradient(ellipse_at_center,rgb(122_26_45/0.85),rgb(40_6_12/0.9))] font-caps text-[0.72rem] uppercase tracking-[0.3em] text-champagne disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />
+        <span className="absolute inset-0 -translate-x-full animate-[shine_3.4s_infinite] bg-[linear-gradient(110deg,transparent_30%,rgb(234_210_164/0.18)_50%,transparent_70%)]" aria-hidden />
+        <span className="h-2 w-2 animate-[live-pulse_1.6s_infinite] rounded-full bg-[#ff5a6e] shadow-[0_0_10px_#ff5a6e]" aria-hidden />
         {t("tryOn")}
       </button>
       {supported === false && <p className="mt-2 text-xs text-muted">{t("tryOnNotReady")}</p>}

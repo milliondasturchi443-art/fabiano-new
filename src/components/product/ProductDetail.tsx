@@ -102,7 +102,7 @@ export function ProductDetail({ product, requestedColor, tryOn }: { product: Pro
                   <label key={c.code} className="cursor-pointer" title={c.name}>
                     <input type="radio" name="color" value={c.code} checked={c.code === color} onChange={() => chooseColor(c.code)} className="peer sr-only" />
                     <span
-                      className={`relative block h-9 w-9 rounded-full border border-ink/15 ring-offset-[3px] ring-offset-canvas peer-checked:ring-1 peer-checked:ring-wine peer-focus-visible:ring-1 peer-focus-visible:ring-ink ${any ? "" : "opacity-40"}`}
+                      className={`relative block h-9 w-9 rounded-full border border-ink/15 ring-offset-[3px] ring-offset-canvas peer-checked:ring-1 peer-checked:ring-gold peer-focus-visible:ring-1 peer-focus-visible:ring-ink ${any ? "" : "opacity-40"}`}
                       style={{ backgroundColor: c.hex }}
                     >
                       {!any && <span className="absolute left-1/2 top-1/2 h-px w-[130%] -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-wine/60" aria-hidden />}
@@ -137,7 +137,7 @@ export function ProductDetail({ product, requestedColor, tryOn }: { product: Pro
                       onChange={() => { setSize(s); setNeedSize(false); setMessage(null); }}
                       className="peer sr-only"
                     />
-                    <span className="flex h-12 items-center justify-center border border-line text-sm font-medium transition-colors hover:border-muted peer-checked:border-wine peer-checked:bg-wine peer-checked:text-cream peer-disabled:text-muted/50 peer-disabled:line-through peer-focus-visible:outline peer-focus-visible:outline-1">
+                    <span className="flex h-12 items-center justify-center border border-line text-sm font-medium transition-colors hover:border-muted peer-checked:border-gold peer-checked:bg-gold peer-checked:text-canvas peer-disabled:text-muted/50 peer-disabled:line-through peer-focus-visible:outline peer-focus-visible:outline-1">
                       {s}
                     </span>
                   </label>

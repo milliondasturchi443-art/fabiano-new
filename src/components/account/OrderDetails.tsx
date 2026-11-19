@@ -17,7 +17,7 @@ export async function OrderDetails({ order, locale }: { order: OrderView; locale
         <ul className="mt-4 divide-y divide-line border-y border-line">
           {order.items.map((i) => (
             <li key={i.id} className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-4 py-4">
-              <div className="relative aspect-[3/4] overflow-hidden bg-line">
+              <div className="relative aspect-[3/4] overflow-hidden bg-surface">
                 {i.image && <Image src={i.image} alt={i.productName} fill sizes="72px" className="object-cover" />}
               </div>
               <div className="min-w-0">

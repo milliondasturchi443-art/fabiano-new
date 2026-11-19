@@ -12,7 +12,7 @@ import { getSessionUser } from "./session";
 import { mergeGuestCartIntoUser } from "@/services/cart";
 import { isLocale } from "@/i18n/routing";
 
-export type AuthState = { error?: string; fields?: Record<string, string> } | null;
+export type AuthState = { error?: string; fields?: Record<string, string>; values?: Record<string, string> } | null;
 
 async function ip() {
   const h = await headers();
@@ -32,15 +32,16 @@ const loginSchema = z.object({
 export async function loginAction(_prev: AuthState, form: FormData): Promise<AuthState> {
   const locale = String(form.get("locale") ?? "uz");
   const parsed = loginSchema.safeParse({ email: form.get("email"), password: form.get("password") });
-  if (!parsed.success) return { error: "INVALID_INPUT" };
+  const keep = { email: String(form.get("email") ?? "").slice(0, 254) };
+  if (!parsed.success) return { error: "INVALID_INPUT", values: keep };
   const { email, password } = parsed.data;
 
   const addr = await ip();
-  if (!rateLimit(`login:${addr}`, 10, 600).ok || !rateLimit(`login:${email}`, 5, 600).ok) return { error: "RATE_LIMITED" };
+  if (!rateLimit(`login:${addr}`, 10, 600).ok || !rateLimit(`login:${email}`, 5, 600).ok) return { error: "RATE_LIMITED", values: keep };
 
   const user = await prisma.user.findUnique({ where: { email } });
   const ok = await verifyPassword(user?.passwordHash, password);
-  if (!user || !ok || !user.isActive) return { error: "INVALID_CREDENTIALS" };
+  if (!user || !ok || !user.isActive) return { error: "INVALID_CREDENTIALS", values: keep };
 
   await createSession(user.id);
   await mergeGuestCartIntoUser(user.id);
@@ -58,18 +59,19 @@ const registerSchema = z.object({
 export async function registerAction(_prev: AuthState, form: FormData): Promise<AuthState> {
   const locale = String(form.get("locale") ?? "uz");
   const parsed = registerSchema.safeParse(Object.fromEntries(["firstName", "lastName", "email", "phone", "password"].map((k) => [k, form.get(k) ?? ""])));
+  const keep = Object.fromEntries(["firstName", "lastName", "email", "phone"].map((k) => [k, String(form.get(k) ?? "").slice(0, 254)]));
   if (!parsed.success) {
     const field = String(parsed.error.issues[0]?.path[0] ?? "");
-    return { error: field === "password" ? "PASSWORD_SHORT" : "INVALID_INPUT", fields: { field } };
+    return { error: field === "password" ? "PASSWORD_SHORT" : "INVALID_INPUT", fields: { field }, values: keep };
   }
   const d = parsed.data;
   const phone = d.phone ? normalizeUzPhone(d.phone) : null;
-  if (d.phone && !phone) return { error: "INVALID_PHONE" };
+  if (d.phone && !phone) return { error: "INVALID_PHONE", values: keep };
 
-  if (!rateLimit(`register:${await ip()}`, 5, 3600).ok) return { error: "RATE_LIMITED" };
+  if (!rateLimit(`register:${await ip()}`, 5, 3600).ok) return { error: "RATE_LIMITED", values: keep };
 
   const exists = await prisma.user.findFirst({ where: { OR: [{ email: d.email }, ...(phone ? [{ phone }] : [])] }, select: { id: true } });
-  if (exists) return { error: "ACCOUNT_EXISTS" };
+  if (exists) return { error: "ACCOUNT_EXISTS", values: keep };
 
   const role = await prisma.role.findUnique({ where: { name: "customer" } });
   const user = await prisma.user.create({

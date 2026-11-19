@@ -28,7 +28,7 @@ export function Gallery({ images, name }: { images: GalleryImage[]; name: string
   };
 
   if (images.length === 0) {
-    return <div className="flex aspect-[3/4] items-center justify-center bg-line font-serif text-2xl tracking-[0.3em] text-muted/60">FABIANO</div>;
+    return <div className="flex aspect-[3/4] items-center justify-center bg-surface font-serif text-2xl tracking-[0.3em] text-muted/60">FABIANO</div>;
   }
 
   const current = images[Math.min(active, images.length - 1)]!;
@@ -44,7 +44,7 @@ export function Gallery({ images, name }: { images: GalleryImage[]; name: string
               onClick={() => setActive(i)}
               aria-label={t("image", { index: i + 1, total: images.length })}
               aria-current={i === active}
-              className={`relative block aspect-[3/4] w-full overflow-hidden bg-line transition-opacity ${i === active ? "opacity-100 ring-1 ring-ink" : "opacity-60 hover:opacity-100"}`}
+              className={`relative block aspect-[3/4] w-full overflow-hidden bg-surface transition-opacity ${i === active ? "opacity-100 ring-1 ring-ink" : "opacity-60 hover:opacity-100"}`}
             >
               <Image src={img.url} alt="" fill sizes="72px" className="object-cover" />
             </button>
@@ -57,7 +57,7 @@ export function Gallery({ images, name }: { images: GalleryImage[]; name: string
         type="button"
         onClick={() => setZoomOpen(true)}
         aria-label={`${t("zoom")}: ${current.alt}`}
-        className="relative hidden aspect-[3/4] w-full cursor-zoom-in overflow-hidden bg-line lg:block"
+        className="relative hidden aspect-[3/4] w-full cursor-zoom-in overflow-hidden rounded-t-[260px] border border-line bg-surface lg:block"
       >
         <Image src={current.url} alt={current.alt} fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
       </button>
@@ -66,7 +66,7 @@ export function Gallery({ images, name }: { images: GalleryImage[]; name: string
       <div className="relative lg:hidden">
         <div ref={trackRef} onScroll={onScroll} className="-mx-[clamp(1.25rem,4vw,3.5rem)] flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]">
           {images.map((img, i) => (
-            <button key={img.url} type="button" onClick={() => setZoomOpen(true)} className="relative aspect-[3/4] w-full shrink-0 snap-center bg-line" aria-label={t("image", { index: i + 1, total: images.length })}>
+            <button key={img.url} type="button" onClick={() => setZoomOpen(true)} className="relative aspect-[3/4] w-full shrink-0 snap-center overflow-hidden rounded-t-[200px] bg-surface" aria-label={t("image", { index: i + 1, total: images.length })}>
               <Image src={img.url} alt={img.alt} fill priority={i === 0} sizes="100vw" className="object-cover" />
             </button>
           ))}

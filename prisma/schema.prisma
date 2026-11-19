@@ -84,6 +84,11 @@ enum CouponType {
   FIXED
 }
 
+enum LeadStatus {
+  NEW
+  DONE
+}
+
 enum ReviewStatus {
   PENDING
   APPROVED
@@ -717,4 +722,21 @@ model MediaFile {
   size      Int
   data      Bytes
   createdAt DateTime @default(now())
+}
+
+// Заявки из формы «Raqamingizni qoldiring» — оператор перезванивает
+model Lead {
+  id        String     @id @default(cuid())
+  firstName String
+  lastName  String
+  phone     String     // E.164 +998XXXXXXXXX
+  question  String?
+  productId String?    // если оставлена со страницы товара
+  page      String?
+  locale    Locale     @default(uz)
+  status    LeadStatus @default(NEW)
+  createdAt DateTime   @default(now())
+  handledAt DateTime?
+
+  @@index([status, createdAt])
 }

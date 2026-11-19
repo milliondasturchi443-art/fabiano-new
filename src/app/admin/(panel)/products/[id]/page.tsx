@@ -47,7 +47,7 @@ export default async function EditProductPage({ params, searchParams }: { params
               const url = mediaUrl(img.storageKey);
               return (
                 <li key={img.id} className="border border-line bg-canvas">
-                  <div className="relative aspect-[3/4] bg-line">{url && <Image src={url} alt="" fill sizes="200px" className="object-cover" />}</div>
+                  <div className="relative aspect-[3/4] bg-surface">{url && <Image src={url} alt="" fill sizes="200px" className="object-cover" />}</div>
                   <form action={updateImageAction} className="space-y-2 p-2">
                     <input type="hidden" name="id" value={img.id} />
                     <input type="hidden" name="productId" value={id} />
@@ -57,7 +57,7 @@ export default async function EditProductPage({ params, searchParams }: { params
                     </select>
                     <div className="flex items-center gap-2">
                       <input name="sortOrder" type="number" min={0} max={999} defaultValue={img.sortOrder} aria-label="Tartib" className="h-8 w-16 border border-line bg-paper px-1 text-center text-xs" />
-                      <button type="submit" className="h-8 flex-1 border border-line text-xs hover:border-wine">Saqlash</button>
+                      <button type="submit" className="h-8 flex-1 border border-line text-xs hover:border-gold">Saqlash</button>
                     </div>
                   </form>
                   <form action={deleteImageAction} className="px-2 pb-2 text-right">

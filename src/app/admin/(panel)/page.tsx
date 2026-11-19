@@ -12,7 +12,7 @@ export default async function AdminOverview() {
   const since = new Date(Date.now() - 29 * 86_400_000);
   since.setHours(0, 0, 0, 0);
 
-  const [revenue, totalOrders, pending, completed, customers, products, lowStock, bestSellers, daily, monthly, recent] = await Promise.all([
+  const [revenue, totalOrders, pending, completed, customers, products, lowStock, bestSellers, daily, monthly, recent, newLeads] = await Promise.all([
     prisma.order.aggregate({ where: { paymentStatus: "PAID" }, _sum: { grandTotal: true } }),
     prisma.order.count(),
     prisma.order.count({ where: { status: "PENDING" } }),
@@ -44,6 +44,7 @@ export default async function AdminOverview() {
       FROM "Order" WHERE "createdAt" >= NOW() - INTERVAL '12 months' AND "status" <> 'CANCELLED'
       GROUP BY 1 ORDER BY 1`,
     prisma.order.findMany({ orderBy: { createdAt: "desc" }, take: 6, select: { id: true, number: true, firstName: true, lastName: true, grandTotal: true, status: true, createdAt: true } }),
+    prisma.lead.count({ where: { status: "NEW" } }),
   ]);
 
   // Ряд из 30 дней, включая дни без заказов
@@ -62,13 +63,14 @@ export default async function AdminOverview() {
     { label: "Yetkazilgan", value: completed.toLocaleString("uz-Latn-UZ") },
     { label: "Xaridorlar", value: customers.toLocaleString("uz-Latn-UZ"), href: "/admin/customers" },
     { label: "Mahsulotlar", value: products.toLocaleString("uz-Latn-UZ"), href: "/admin/products" },
+    { label: "Yangi murojaatlar", value: newLeads.toLocaleString("uz-Latn-UZ"), href: "/admin/leads" },
   ];
 
   return (
     <div className="space-y-10">
       <h1 className="text-4xl md:text-5xl">Umumiy koʻrinish</h1>
 
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <ul className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
         {stats.map((s) => (
           <li key={s.label} className="card p-5">
             <p className="text-xs text-muted">{s.label}</p>

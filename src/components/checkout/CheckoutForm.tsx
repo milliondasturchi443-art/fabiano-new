@@ -32,6 +32,7 @@ export function CheckoutForm({
   const locale = useLocale() as AppLocale;
   const [state, action, pending] = useActionState(checkoutAction, null);
   const regions = t.raw("regions") as string[];
+  const v = state?.values ?? {};
   const [region, setRegion] = useState("");
   const [deliveryId, setDeliveryId] = useState(deliveries[0]?.id ?? "");
 
@@ -56,10 +57,10 @@ export function CheckoutForm({
         <fieldset>
           <legend className="text-3xl">{t("contact")}</legend>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <label><span className={label}>{ta("firstName")} *</span><input name="firstName" required autoComplete="given-name" defaultValue={prefill.firstName ?? ""} className={input} /></label>
-            <label><span className={label}>{ta("lastName")} *</span><input name="lastName" required autoComplete="family-name" defaultValue={prefill.lastName ?? ""} className={input} /></label>
-            <label><span className={label}>{ta("phone")} *</span><input name="phone" type="tel" inputMode="tel" required autoComplete="tel" placeholder="+998 90 123 45 67" defaultValue={prefill.phone ?? "+998 "} className={`${input} price`} /></label>
-            <label><span className={label}>{ta("email")} ({ta("optional")})</span><input name="email" type="email" inputMode="email" autoComplete="email" defaultValue={prefill.email ?? ""} className={input} /></label>
+            <label><span className={label}>{ta("firstName")} *</span><input name="firstName" required autoComplete="given-name" defaultValue={v.firstName ?? prefill.firstName ?? ""} className={input} /></label>
+            <label><span className={label}>{ta("lastName")} *</span><input name="lastName" required autoComplete="family-name" defaultValue={v.lastName ?? prefill.lastName ?? ""} className={input} /></label>
+            <label><span className={label}>{ta("phone")} *</span><input name="phone" type="tel" inputMode="tel" required autoComplete="tel" placeholder="+998 90 123 45 67" defaultValue={v.phone ?? prefill.phone ?? "+998 "} className={`${input} price`} /></label>
+            <label><span className={label}>{ta("email")} ({ta("optional")})</span><input name="email" type="email" inputMode="email" autoComplete="email" defaultValue={v.email ?? prefill.email ?? ""} className={input} /></label>
           </div>
         </fieldset>
 
@@ -73,13 +74,13 @@ export function CheckoutForm({
                 {regions.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
             </label>
-            <label className="sm:col-span-2"><span className={label}>{t("district")} *</span><input name="district" required autoComplete="address-level2" className={input} /></label>
-            <label className="sm:col-span-2"><span className={label}>{t("street")} *</span><input name="street" required autoComplete="address-line1" className={input} /></label>
-            <label><span className={label}>{t("house")} *</span><input name="house" required className={input} /></label>
-            <label><span className={label}>{t("apartment")}</span><input name="apartment" className={input} /></label>
+            <label className="sm:col-span-2"><span className={label}>{t("district")} *</span><input name="district" required autoComplete="address-level2" defaultValue={v.district} className={input} /></label>
+            <label className="sm:col-span-2"><span className={label}>{t("street")} *</span><input name="street" required autoComplete="address-line1" defaultValue={v.street} className={input} /></label>
+            <label><span className={label}>{t("house")} *</span><input name="house" required defaultValue={v.house} className={input} /></label>
+            <label><span className={label}>{t("apartment")}</span><input name="apartment" defaultValue={v.apartment} className={input} /></label>
             <label className="sm:col-span-2">
               <span className={label}>{t("comment")}</span>
-              <textarea name="comment" rows={3} maxLength={500} placeholder={t("commentPlaceholder")} className="field mt-1.5" />
+              <textarea name="comment" defaultValue={v.comment} rows={3} maxLength={500} placeholder={t("commentPlaceholder")} className="field mt-1.5" />
             </label>
           </div>
         </fieldset>
@@ -88,8 +89,8 @@ export function CheckoutForm({
           <legend className="text-3xl">{t("deliveryMethod")}</legend>
           <div className="mt-6 space-y-3">
             {available.map((d) => (
-              <label key={d.id} className="flex cursor-pointer items-center gap-4 border border-line bg-paper p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#d8c4b2] has-[:checked]:border-wine has-[:checked]:shadow-[0_0_0_3px_rgb(92_20_34/0.1)]">
-                <input type="radio" name="deliveryMethodId" value={d.id} checked={delivery?.id === d.id} onChange={() => setDeliveryId(d.id)} className="h-4 w-4 accent-[var(--color-wine)]" />
+              <label key={d.id} className="flex cursor-pointer items-center gap-4 border border-line bg-paper p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#d8c4b2] has-[:checked]:border-gold has-[:checked]:shadow-[0_0_0_3px_rgb(92_20_34/0.1)]">
+                <input type="radio" name="deliveryMethodId" value={d.id} checked={delivery?.id === d.id} onChange={() => setDeliveryId(d.id)} className="h-4 w-4 accent-[var(--color-gold)]" />
                 <span className="flex-1">
                   <span className="block text-sm font-medium">{d.name}</span>
                   {d.etaDays && <span className="block text-xs text-muted">{t("eta", { days: d.etaDays })}</span>}
@@ -104,8 +105,8 @@ export function CheckoutForm({
           <legend className="text-3xl">{t("paymentMethod")}</legend>
           <div className="mt-6 space-y-3">
             {codEnabled && (
-              <label className="flex cursor-pointer items-center gap-4 border border-line bg-paper p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#d8c4b2] has-[:checked]:border-wine has-[:checked]:shadow-[0_0_0_3px_rgb(92_20_34/0.1)]">
-                <input type="radio" name="paymentProvider" value="CASH_ON_DELIVERY" defaultChecked className="h-4 w-4 accent-[var(--color-wine)]" />
+              <label className="flex cursor-pointer items-center gap-4 border border-line bg-paper p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#d8c4b2] has-[:checked]:border-gold has-[:checked]:shadow-[0_0_0_3px_rgb(92_20_34/0.1)]">
+                <input type="radio" name="paymentProvider" value="CASH_ON_DELIVERY" defaultChecked className="h-4 w-4 accent-[var(--color-gold)]" />
                 <span>
                   <span className="block text-sm font-medium">{t("cod")}</span>
                   <span className="block text-xs text-muted">{t("codHint")}</span>
@@ -121,7 +122,7 @@ export function CheckoutForm({
         <ul className="mt-6 space-y-4">
           {cart.lines.map((l) => (
             <li key={l.id} className="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 text-sm">
-              <div className="relative aspect-[3/4] overflow-hidden bg-line">
+              <div className="relative aspect-[3/4] overflow-hidden bg-surface">
                 {l.image && <Image src={l.image} alt="" fill sizes="56px" className="object-cover" />}
                 <span className="price absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-wine px-1 text-[0.625rem] text-cream">{l.quantity}</span>
               </div>

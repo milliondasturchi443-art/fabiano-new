@@ -85,7 +85,7 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
                 return (
                   <tr key={p.id} className="hover:bg-canvas">
                     <td className="p-3">
-                      <div className="relative h-14 w-11 overflow-hidden bg-line">{img && <Image src={img} alt="" fill sizes="44px" className="object-cover" />}</div>
+                      <div className="relative h-14 w-11 overflow-hidden bg-surface">{img && <Image src={img} alt="" fill sizes="44px" className="object-cover" />}</div>
                     </td>
                     <td className="p-3">
                       <Link href={`/admin/products/${p.id}`} className="link-underline font-medium">{p.translations[0]?.name ?? "(nomsiz)"}</Link>

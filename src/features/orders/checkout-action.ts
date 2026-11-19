@@ -11,7 +11,7 @@ import { resolveCart } from "@/services/cart";
 import { isLocale } from "@/i18n/routing";
 import { CheckoutError, placeOrder } from "./place-order";
 
-export type CheckoutState = { error?: string } | null;
+export type CheckoutState = { error?: string; values?: Record<string, string> } | null;
 
 const schema = z.object({
   firstName: z.string().trim().min(1).max(60),
@@ -32,23 +32,24 @@ export async function checkoutAction(_prev: CheckoutState, form: FormData): Prom
   const localeRaw = String(form.get("locale") ?? "uz");
   const locale = isLocale(localeRaw) ? localeRaw : "uz";
 
-  const parsed = schema.safeParse(Object.fromEntries([...form.entries()].filter(([k]) => !k.startsWith("$")).map(([k, v]) => [k, String(v)])));
+  const values = Object.fromEntries([...form.entries()].filter(([k]) => !k.startsWith("$") && k !== "locale").map(([k, v]) => [k, String(v).slice(0, 500)]));
+  const parsed = schema.safeParse(values);
   if (!parsed.success) {
     const field = String(parsed.error.issues[0]?.path[0] ?? "");
-    if (field === "deliveryMethodId") return { error: "DELIVERY_INVALID" };
-    if (field === "paymentProvider") return { error: "PAYMENT_INVALID" };
-    return { error: "INVALID_INPUT" };
+    if (field === "deliveryMethodId") return { error: "DELIVERY_INVALID", values };
+    if (field === "paymentProvider") return { error: "PAYMENT_INVALID", values };
+    return { error: "INVALID_INPUT", values };
   }
   const d = parsed.data;
   const phone = normalizeUzPhone(d.phone);
-  if (!phone) return { error: "INVALID_PHONE" };
+  if (!phone) return { error: "INVALID_PHONE", values };
 
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!rateLimit(`checkout:${ip}`, 10, 600).ok) return { error: "RATE_LIMITED" };
+  if (!rateLimit(`checkout:${ip}`, 10, 600).ok) return { error: "RATE_LIMITED", values };
 
   const [user, cart] = await Promise.all([getSessionUser(), resolveCart(false)]);
-  if (!cart) return { error: "EMPTY_CART" };
+  if (!cart) return { error: "EMPTY_CART", values };
 
   let result: { number: string; guestToken: string | null };
   try {
@@ -66,9 +67,9 @@ export async function checkoutAction(_prev: CheckoutState, form: FormData): Prom
       paymentProvider: d.paymentProvider,
     });
   } catch (e) {
-    if (e instanceof CheckoutError) return { error: e.code };
+    if (e instanceof CheckoutError) return { error: e.code, values };
     console.error("[checkout]", e);
-    return { error: "GENERIC" };
+    return { error: "GENERIC", values };
   }
 
   revalidatePath(`/${locale}`, "layout"); // остатки на витрине изменились

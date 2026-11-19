@@ -53,7 +53,7 @@ export function WishlistButton({ productId, variant = "text", initial }: { produ
       aria-label={variant === "icon" ? label : undefined}
       className={variant === "icon" ? "flex h-11 w-11 items-center justify-center" : "eyebrow link-underline inline-flex items-center gap-2 pb-1"}
     >
-      <HeartIcon width={18} height={18} fill={saved ? "currentColor" : "none"} className={saved ? "text-wine" : ""} />
+      <HeartIcon width={18} height={18} fill={saved ? "currentColor" : "none"} className={saved ? "text-gold" : ""} />
       {variant === "text" && label}
     </button>
   );

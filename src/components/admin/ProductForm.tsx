@@ -66,7 +66,7 @@ export function ProductForm({
           <h2 className="text-2xl">Nomi va tavsifi</h2>
           <div role="tablist" className="flex border border-line">
             {LOC.map((l) => (
-              <button key={l.k} type="button" role="tab" aria-selected={tab === l.k} onClick={() => setTab(l.k)} className={`h-9 px-4 text-xs font-semibold ${tab === l.k ? "bg-wine text-cream" : "text-muted"}`}>
+              <button key={l.k} type="button" role="tab" aria-selected={tab === l.k} onClick={() => setTab(l.k)} className={`h-9 px-4 text-xs font-semibold ${tab === l.k ? "bg-gold text-canvas" : "text-muted"}`}>
                 {l.label}{l.req ? " *" : ""}
               </button>
             ))}
@@ -110,15 +110,15 @@ export function ProductForm({
         </label>
         <label><span className={labelCls}>Sahifa manzili (slug)</span><input name="slug" defaultValue={data.slug} placeholder="avtomatik yaratiladi" className={inputCls} /></label>
         <div className="flex flex-wrap gap-6 md:col-span-2 xl:col-span-4">
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isNew" defaultChecked={data.isNew} className="h-4 w-4 accent-[var(--color-wine)]" /> Yangi (New belgisi, «Yangi kelganlar» bloki)</label>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isFeatured" defaultChecked={data.isFeatured} className="h-4 w-4 accent-[var(--color-wine)]" /> Tavsiya etilgan (katalogda yuqorida)</label>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isNew" defaultChecked={data.isNew} className="h-4 w-4 accent-[var(--color-gold)]" /> Yangi (New belgisi, «Yangi kelganlar» bloki)</label>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isFeatured" defaultChecked={data.isFeatured} className="h-4 w-4 accent-[var(--color-gold)]" /> Tavsiya etilgan (katalogda yuqorida)</label>
         </div>
         {collections.length > 0 && (
           <fieldset className="md:col-span-2 xl:col-span-4">
             <legend className={labelCls}>Kolleksiyalar</legend>
             <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
               {collections.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 text-sm"><input type="checkbox" name="collectionIds" value={c.id} defaultChecked={data.collectionIds.includes(c.id)} className="h-4 w-4 accent-[var(--color-wine)]" />{c.label}</label>
+                <label key={c.id} className="flex items-center gap-2 text-sm"><input type="checkbox" name="collectionIds" value={c.id} defaultChecked={data.collectionIds.includes(c.id)} className="h-4 w-4 accent-[var(--color-gold)]" />{c.label}</label>
               ))}
             </div>
           </fieldset>
@@ -133,7 +133,7 @@ export function ProductForm({
             <legend className={labelCls}>Ranglar</legend>
             <div className="mt-2 flex flex-wrap gap-2">
               {colors.map((c) => (
-                <button key={c.id} type="button" onClick={() => toggle(selColors, setSelColors, c.id)} aria-pressed={selColors.includes(c.id)} className={`flex h-9 items-center gap-2 border px-3 text-xs ${selColors.includes(c.id) ? "border-wine bg-wine text-cream" : "border-line"}`}>
+                <button key={c.id} type="button" onClick={() => toggle(selColors, setSelColors, c.id)} aria-pressed={selColors.includes(c.id)} className={`flex h-9 items-center gap-2 border px-3 text-xs ${selColors.includes(c.id) ? "border-gold bg-gold text-canvas" : "border-line"}`}>
                   <span className="h-3.5 w-3.5 rounded-full border border-ink/20" style={{ backgroundColor: c.hex }} />{c.label}
                 </button>
               ))}
@@ -143,7 +143,7 @@ export function ProductForm({
             <legend className={labelCls}>Oʻlchamlar</legend>
             <div className="mt-2 flex flex-wrap gap-2">
               {sizes.map((s) => (
-                <button key={s.id} type="button" onClick={() => toggle(selSizes, setSelSizes, s.id)} aria-pressed={selSizes.includes(s.id)} className={`h-9 min-w-11 border px-3 text-xs font-medium ${selSizes.includes(s.id) ? "border-wine bg-wine text-cream" : "border-line"}`}>
+                <button key={s.id} type="button" onClick={() => toggle(selSizes, setSelSizes, s.id)} aria-pressed={selSizes.includes(s.id)} className={`h-9 min-w-11 border px-3 text-xs font-medium ${selSizes.includes(s.id) ? "border-gold bg-gold text-canvas" : "border-line"}`}>
                   {s.label}
                 </button>
               ))}

@@ -11,7 +11,7 @@ export default async function AdminPanelLayout({ children }: { children: React.R
   const user = await requireAdmin();
   return (
     <div className="min-h-svh lg:grid lg:grid-cols-[15rem_1fr]">
-      <aside className="velvet text-cream lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col">
+      <aside className="border-r border-line bg-paper text-ink lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col">
         <div className="flex items-center justify-between px-5 py-4 lg:block lg:px-6 lg:py-7">
           <Link href="/admin" aria-label="Umumiy koʻrinish">
             <Image src={logoCream} alt="FABIANO" priority className="h-10 w-auto lg:h-14" />

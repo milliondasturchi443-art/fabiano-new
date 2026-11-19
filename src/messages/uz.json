@@ -19,14 +19,21 @@
     "skipToContent": "Asosiy kontentga oʻtish",
     "mainNav": "Asosiy menyu",
     "breadcrumbs": "Sahifa yoʻli",
-    "admin": "Boshqaruv paneli"
+    "admin": "Boshqaruv paneli",
+    "home": "Bosh",
+    "catalog": "Katalog",
+    "favShort": "Sevimli",
+    "profile": "Profil",
+    "newShort": "Yangi",
+    "contact": "Aloqa",
+    "tabbar": "Pastki menyu"
   },
   "hero": {
-    "title": "SIZNI IFODALOVCHI USLUB.",
-    "subtitle": "FABIANOning eng soʻnggi kolleksiyasini kashf eting.",
-    "shopMen": "Erkaklar uchun",
-    "shopWomen": "Ayollar uchun",
-    "eyebrow": "Yangi kolleksiya"
+    "title": "Sizni *ifodalovchi* uslub",
+    "subtitle": "FABIANO bilan oʻz uslubingizni yarating.",
+    "shopMen": "Erkaklar kolleksiyasi",
+    "shopWomen": "Ayollar kolleksiyasi",
+    "eyebrow": "FABIANO"
   },
   "home": {
     "newArrivals": "Yangi kelganlar",
@@ -41,7 +48,17 @@
     "menTitle": "Erkaklar",
     "womenTitle": "Ayollar",
     "menText": "Har kuni uchun zamonaviy klassika",
-    "womenText": "Nafislik va erkinlik uygʻunligi"
+    "womenText": "Nafislik va erkinlik uygʻunligi",
+    "allTab": "Hammasi",
+    "allProducts": "Barcha mahsulotlar",
+    "emptyTitle": "Kolleksiya tez orada",
+    "emptyText": "Yangi mahsulotlar shu yerda paydo boʻladi. Raqamingizni qoldiring — birinchilardan boʻlib xabar beramiz.",
+    "collectionLabel": "Kolleksiya",
+    "aboutEyebrow": "Biz haqimizda",
+    "aboutTitle": "FABIANO haqida",
+    "aboutText": "FABIANO — erkaklar va ayollar uchun zamonaviy kiyimlar doʻkoni.",
+    "contactLink": "Aloqa",
+    "view": "Koʻrish"
   },
   "product": {
     "new": "Yangi",
@@ -73,7 +90,9 @@
     "close": "Yopish",
     "image": "{index}-rasm, jami {total}",
     "prevImage": "Oldingi rasm",
-    "nextImage": "Keyingi rasm"
+    "nextImage": "Keyingi rasm",
+    "noImage": "Rasm yoʻq",
+    "soldOutShort": "Qolmagan"
   },
   "newsletter": {
     "title": "Yangiliklardan birinchi boʻlib xabardor boʻling",
@@ -319,5 +338,35 @@
     "continue": "Xaridni davom ettirish",
     "viewInAccount": "Hisobimda koʻrish",
     "guestNote": "Bu sahifa havolasini saqlab qoʻying — u orqali buyurtmangizni koʻrishingiz mumkin."
+  },
+  "lead": {
+    "eyebrow": "Bogʻlanish",
+    "title": "Raqamingizni qoldiring",
+    "text": "Savolingiz boʻlsa, ism va raqamingizni qoldiring — siz bilan bogʻlanamiz.",
+    "firstName": "Ism",
+    "lastName": "Familiya",
+    "firstNamePh": "Ismingiz",
+    "lastNamePh": "Familiyangiz",
+    "phone": "Telefon raqami",
+    "question": "Savolingiz (ixtiyoriy)",
+    "questionPh": "Masalan: oʻlcham yoki rang haqida",
+    "submit": "Yuborish",
+    "sending": "Yuborilmoqda…",
+    "privacy": "Maʼlumotlaringizni faqat doʻkon egasi koʻradi",
+    "thanks": "Rahmat, {name}!",
+    "thanksText": "Soʻrovingiz qabul qilindi. Tez orada {phone} raqamiga bogʻlanamiz.",
+    "errors": {
+      "NAME_EMPTY": "Kiriting",
+      "NAME_SHORT": "Juda qisqa",
+      "NAME_LONG": "Juda uzun",
+      "NAME_CHARS": "Faqat harflardan iborat boʻlishi kerak",
+      "NAME_FAKE": "Iltimos, haqiqiy maʼlumot yozing",
+      "PHONE_EMPTY": "Telefon raqamini kiriting",
+      "PHONE_SHORT": "Raqam toʻliq emas: +998 dan keyin 9 ta raqam boʻlishi kerak",
+      "PHONE_OPERATOR": "Bu Oʻzbekiston mobil operator kodi emas (masalan: 90, 91, 93, 94, 97, 99, 33, 88, 77, 50)",
+      "PHONE_FAKE": "Bu raqam haqiqiyga oʻxshamaydi — iltimos, oʻz raqamingizni yozing",
+      "RATE_LIMITED": "Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring.",
+      "GENERIC": "Xatolik yuz berdi. Qayta urinib koʻring."
+    }
   }
 }

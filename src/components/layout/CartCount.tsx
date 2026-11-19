@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { CART_EVENT } from "@/features/cart/client";
 
-/** Счётчик товаров: загружается после гидрации (страницы остаются кэшируемыми) и обновляется событием корзины. */
-export function CartCount() {
+/** Счётчик товаров: загружается после гидрации и обновляется событием корзины. */
+export function CartCount({ variant = "header" }: { variant?: "header" | "tab" }) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -22,8 +22,12 @@ export function CartCount() {
   }, []);
 
   if (count === 0) return null;
+  const cls =
+    variant === "tab"
+      ? "absolute -right-1 -top-1 bg-wine text-cream"
+      : "absolute right-0.5 top-1 bg-gold text-canvas";
   return (
-    <span className="price absolute right-1 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-cream px-1 text-[0.5625rem] font-semibold text-wine-deep">
+    <span className={`price ${cls} grid h-[17px] min-w-[17px] place-items-center rounded-full px-1 text-[0.625rem] font-bold`}>
       {count > 99 ? "99+" : count}
     </span>
   );

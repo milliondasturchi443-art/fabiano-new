@@ -19,14 +19,21 @@
     "skipToContent": "Skip to content",
     "mainNav": "Main menu",
     "breadcrumbs": "Breadcrumb",
-    "admin": "Admin panel"
+    "admin": "Admin panel",
+    "home": "Home",
+    "catalog": "Catalog",
+    "favShort": "Saved",
+    "profile": "Profile",
+    "newShort": "New",
+    "contact": "Contact",
+    "tabbar": "Bottom menu"
   },
   "hero": {
-    "title": "STYLE THAT DEFINES YOU.",
-    "subtitle": "Discover the latest collection by FABIANO.",
-    "shopMen": "Shop Men",
-    "shopWomen": "Shop Women",
-    "eyebrow": "New collection"
+    "title": "Style that *defines* you",
+    "subtitle": "Create your own style with FABIANO.",
+    "shopMen": "Men's collection",
+    "shopWomen": "Women's collection",
+    "eyebrow": "FABIANO"
   },
   "home": {
     "newArrivals": "New Arrivals",
@@ -41,7 +48,17 @@
     "menTitle": "Men",
     "womenTitle": "Women",
     "menText": "Modern classics for every day",
-    "womenText": "Where elegance meets ease"
+    "womenText": "Where elegance meets ease",
+    "allTab": "All",
+    "allProducts": "All products",
+    "emptyTitle": "Collection coming soon",
+    "emptyText": "New products will appear here. Leave your number and be the first to know.",
+    "collectionLabel": "Collection",
+    "aboutEyebrow": "About us",
+    "aboutTitle": "About FABIANO",
+    "aboutText": "FABIANO is a modern clothing store for men and women.",
+    "contactLink": "Contact",
+    "view": "Explore"
   },
   "product": {
     "new": "New",
@@ -73,7 +90,9 @@
     "close": "Close",
     "image": "Image {index} of {total}",
     "prevImage": "Previous image",
-    "nextImage": "Next image"
+    "nextImage": "Next image",
+    "noImage": "No photo",
+    "soldOutShort": "Sold out"
   },
   "newsletter": {
     "title": "Be the first to know",
@@ -319,5 +338,35 @@
     "continue": "Continue shopping",
     "viewInAccount": "View in account",
     "guestNote": "Save the link to this page — you can use it to view your order."
+  },
+  "lead": {
+    "eyebrow": "Get in touch",
+    "title": "Leave your number",
+    "text": "Have a question? Leave your name and number and we will call you back.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "firstNamePh": "Your first name",
+    "lastNamePh": "Your last name",
+    "phone": "Phone number",
+    "question": "Your question (optional)",
+    "questionPh": "E.g. about size or colour",
+    "submit": "Send",
+    "sending": "Sending…",
+    "privacy": "Only the store owner sees your details",
+    "thanks": "Thank you, {name}!",
+    "thanksText": "Request received. We will call {phone} shortly.",
+    "errors": {
+      "NAME_EMPTY": "Please fill in",
+      "NAME_SHORT": "Too short",
+      "NAME_LONG": "Too long",
+      "NAME_CHARS": "Letters only",
+      "NAME_FAKE": "Please enter real details",
+      "PHONE_EMPTY": "Enter your phone number",
+      "PHONE_SHORT": "Incomplete: 9 digits are needed after +998",
+      "PHONE_OPERATOR": "Not an Uzbek mobile operator code (e.g. 90, 91, 93, 94, 97, 99, 33, 88, 77, 50)",
+      "PHONE_FAKE": "This number does not look real — please enter yours",
+      "RATE_LIMITED": "Too many attempts. Please try again shortly.",
+      "GENERIC": "Something went wrong. Please try again."
+    }
   }
 }

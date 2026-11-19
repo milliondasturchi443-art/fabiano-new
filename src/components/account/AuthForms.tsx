@@ -18,7 +18,7 @@ export function AuthForms({ next, initialTab = "login" }: { next?: string; initi
             type="button"
             aria-selected={tab === k}
             onClick={() => setTab(k)}
-            className={`eyebrow -mb-px h-14 border-b-2 transition-colors ${tab === k ? "border-wine text-ink" : "border-transparent text-muted hover:text-ink"}`}
+            className={`eyebrow -mb-px h-14 border-b-2 transition-colors ${tab === k ? "border-gold text-ink" : "border-transparent text-muted hover:text-ink"}`}
           >
             {t(k)}
           </button>
@@ -68,7 +68,7 @@ function LoginForm({ next }: { next?: string }) {
     <form action={action} className="space-y-5">
       <input type="hidden" name="locale" value={locale} />
       {next && <input type="hidden" name="next" value={next} />}
-      <Field label={t("email")} name="email" type="email" autoComplete="email" inputMode="email" />
+      <Field label={t("email")} name="email" type="email" autoComplete="email" inputMode="email" defaultValue={state?.values?.email} />
       <Field label={t("password")} name="password" type="password" autoComplete="current-password" />
       <ErrorText state={state} />
       <button type="submit" disabled={pending} className="btn btn-primary w-full disabled:opacity-50">{t("submitLogin")}</button>
@@ -85,11 +85,11 @@ function RegisterForm({ next }: { next?: string }) {
       <input type="hidden" name="locale" value={locale} />
       {next && <input type="hidden" name="next" value={next} />}
       <div className="grid grid-cols-2 gap-3">
-        <Field label={t("firstName")} name="firstName" autoComplete="given-name" />
-        <Field label={t("lastName")} name="lastName" autoComplete="family-name" />
+        <Field label={t("firstName")} name="firstName" autoComplete="given-name" defaultValue={state?.values?.firstName} />
+        <Field label={t("lastName")} name="lastName" autoComplete="family-name" defaultValue={state?.values?.lastName} />
       </div>
-      <Field label={t("email")} name="email" type="email" autoComplete="email" inputMode="email" />
-      <Field label={`${t("phone")} (${t("optional")})`} name="phone" type="tel" autoComplete="tel" inputMode="tel" required={false} placeholder="+998 90 123 45 67" />
+      <Field label={t("email")} name="email" type="email" autoComplete="email" inputMode="email" defaultValue={state?.values?.email} />
+      <Field label={`${t("phone")} (${t("optional")})`} name="phone" type="tel" autoComplete="tel" inputMode="tel" required={false} placeholder="+998 90 123 45 67" defaultValue={state?.values?.phone} />
       <Field label={t("password")} name="password" type="password" autoComplete="new-password" hint={t("passwordHint")} />
       <ErrorText state={state} />
       <button type="submit" disabled={pending} className="btn btn-primary w-full disabled:opacity-50">{t("submitRegister")}</button>
