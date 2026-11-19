@@ -24,3 +24,9 @@ test("phone with +998 prefix and repeated digits", () => {
   assert.equal(validateCheckout({ ...ok, phone: "90 111 11 11" }).phone, "PHONE_FAKE");
   assert.equal(validateCheckout({ ...ok, phone: "90 123" }).phone, "PHONE_SHORT");
 });
+
+test("keyboard mash addresses are rejected, real names pass", async () => {
+  const { looksLikeKeyboardMash } = await import("../../src/features/orders/checkout-validate");
+  for (const w of ["sdada", "dsadas", "dasda", "asdadsada", "qweqwe", "zxczxc", "fdgfdg"]) assert.equal(looksLikeKeyboardMash(w), true, w);
+  for (const w of ["Chilonzor tumani", "Yunusobod", "Asaka", "Namangan shahri", "Chust", "Pop", "Yuqori Chirchiq", "Bunyodkor koʻchasi", "Amir Temur", "Sergeli", "Ertut"]) assert.equal(looksLikeKeyboardMash(w), false, w);
+});

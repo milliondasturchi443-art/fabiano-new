@@ -354,7 +354,8 @@
       "REGION_EMPTY": "Select a region.",
       "ADDR_DISTRICT": "Enter the district or city.",
       "ADDR_STREET": "Enter the street or mahalla.",
-      "ADDR_HOUSE": "Enter the house number (e.g. 12 or 12A)."
+      "ADDR_HOUSE": "Enter the house number (e.g. 12 or 12A).",
+      "ADDR_FAKE": "Please enter a real address — the courier will come to it."
     },
     "successTitle": "Thank you! Your order has been placed",
     "successText": "Our team will contact you shortly to confirm the order.",

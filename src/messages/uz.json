@@ -354,7 +354,8 @@
       "REGION_EMPTY": "Viloyatni tanlang.",
       "ADDR_DISTRICT": "Tuman yoki shahar nomini yozing.",
       "ADDR_STREET": "Koʻcha yoki mahalla nomini yozing.",
-      "ADDR_HOUSE": "Uy raqamini yozing (masalan: 12 yoki 12A)."
+      "ADDR_HOUSE": "Uy raqamini yozing (masalan: 12 yoki 12A).",
+      "ADDR_FAKE": "Iltimos, haqiqiy manzil yozing — kuryer shu manzilga keladi."
     },
     "successTitle": "Rahmat! Buyurtmangiz qabul qilindi",
     "successText": "Tez orada operatorimiz buyurtmani tasdiqlash uchun siz bilan bogʻlanadi.",
