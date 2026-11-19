@@ -425,6 +425,7 @@
       "CONFIRMED": "Confirmed",
       "SHIPPED": "On the way",
       "DELIVERED": "Delivered"
-    }
+    },
+    "opening": "Order placed — opening your receipt…"
   }
 }

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -33,7 +32,19 @@ export default async function CheckoutPage({ params }: Props) {
     prisma.paymentMethodConfig.findUnique({ where: { provider: "CASH_ON_DELIVERY" } }),
   ]);
 
-  if (cart.lines.length === 0) redirect(`/${locale}/cart`);
+  // Пустая корзина: показываем сообщение без redirect (redirect во время экшена оформления обрывал ответ)
+  if (cart.lines.length === 0) {
+    const tc = await getTranslations("cart");
+    return (
+      <>
+        <SiteHeader />
+        <main id="main" className="page-x mx-auto flex max-w-[var(--container-page)] flex-col items-center py-24 text-center">
+          <h1 className="text-4xl md:text-5xl">{tc("empty")}</h1>
+          <Link href="/catalog" className="btn btn-primary mt-8">{tc("continue")}</Link>
+        </main>
+      </>
+    );
+  }
 
   const deliveries: DeliveryOption[] = methods.map((m) => ({
     id: m.id,

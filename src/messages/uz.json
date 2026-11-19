@@ -425,6 +425,7 @@
       "CONFIRMED": "Tasdiqlandi",
       "SHIPPED": "Yoʻlda",
       "DELIVERED": "Yetkazildi"
-    }
+    },
+    "opening": "Buyurtma qabul qilindi — chek ochilmoqda…"
   }
 }

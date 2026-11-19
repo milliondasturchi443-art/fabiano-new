@@ -1,8 +1,6 @@
 "use server";
 
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { capitalizeName, uzPhoneDigits } from "@/lib/validate-contact";
 import { validateCheckout, type FieldErrors } from "./checkout-validate";
@@ -12,7 +10,7 @@ import { resolveCart } from "@/services/cart";
 import { isLocale } from "@/i18n/routing";
 import { CheckoutError, placeOrder } from "./place-order";
 
-export type CheckoutState = { error?: string; fields?: FieldErrors; values?: Record<string, string> } | null;
+export type CheckoutState = { error?: string; fields?: FieldErrors; values?: Record<string, string>; ok?: true; url?: string } | null;
 
 const schema = z.object({
   firstName: z.string().trim().min(1).max(60),
@@ -74,7 +72,9 @@ export async function checkoutAction(_prev: CheckoutState, form: FormData): Prom
     return { error: "GENERIC", values };
   }
 
-  revalidatePath(`/${locale}`, "layout"); // остатки на витрине изменились
+  // Без redirect()/revalidatePath в ответе экшена: страница оформления при пустой корзине сама
+  // делает redirect, и вместе это обрывало ответ — заказ создавался, а чек не открывался.
+  // Браузер сам откроет чек по ссылке (жёсткий переход), витрина обновится по ISR.
   const q = new URLSearchParams({ n: result.number, ...(result.guestToken ? { t: result.guestToken } : {}) });
-  redirect(`/${locale}/checkout/success?${q.toString()}`);
+  return { ok: true, url: `/${locale}/checkout/success?${q.toString()}` };
 }

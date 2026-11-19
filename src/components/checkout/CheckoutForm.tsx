@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { startTransition, useActionState, useMemo, useState } from "react";
+import { startTransition, useActionState, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { checkoutAction } from "@/features/orders/checkout-action";
 import { formatMoney, fromMinor, toMinor } from "@/lib/money";
@@ -33,6 +33,7 @@ export function CheckoutForm({
   const ta = useTranslations("account");
   const locale = useLocale() as AppLocale;
   const tl = useTranslations("lead");
+  const tr = useTranslations("receipt");
   const [state, dispatch, pending] = useActionState(checkoutAction, null);
   const regions = t.raw("regions") as string[];
   const v = state?.values ?? {};
@@ -51,7 +52,14 @@ export function CheckoutForm({
   };
   const inv = (f: CheckoutField) => (fe[f] ? { "aria-invalid": true as const, "aria-describedby": `co-${f}-err` } : {});
 
+  // Заказ создан → открываем чек (жёсткий переход, не зависит от потока RSC)
+  useEffect(() => {
+    if (state?.ok && state.url) window.location.assign(state.url);
+  }, [state]);
+  const done = Boolean(state?.ok);
+
   function submit(e: React.FormEvent<HTMLFormElement>) {
+    if (done) { e.preventDefault(); return; }
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const errs = validateCheckout(Object.fromEntries([...fd.entries()].map(([k, x]) => [k, String(x)])));
@@ -184,7 +192,8 @@ export function CheckoutForm({
         </div>
         {err && <p role="alert" className="mt-5 text-sm text-danger">{err}</p>}
         {Object.keys(fe).length > 0 && <p role="alert" className="mt-5 text-sm text-danger">{t("errors.CHECK_FIELDS")}</p>}
-        <button type="submit" disabled={pending || !delivery} className="btn btn-primary mt-6 w-full disabled:opacity-50">{pending ? "…" : t("placeOrder")}</button>
+        <button type="submit" disabled={pending || done || !delivery} className="btn btn-primary mt-6 w-full disabled:opacity-50">{pending || done ? "…" : t("placeOrder")}</button>
+        {done && <p role="status" className="mt-4 text-sm text-success">✓ {tr("opening")}</p>}
       </aside>
     </form>
   );
