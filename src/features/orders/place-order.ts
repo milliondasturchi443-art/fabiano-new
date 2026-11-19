@@ -25,7 +25,7 @@ export interface PlaceOrderInput {
   address: { region: string; district: string; street: string; house: string; apartment: string | null };
   comment: string | null;
   deliveryMethodId: string;
-  paymentProvider: "CASH_ON_DELIVERY";
+  paymentProvider: "CASH_ON_DELIVERY" | "PAYME" | "CLICK";
 }
 
 /**

@@ -319,7 +319,7 @@
     "placeOrder": "Buyurtma berish",
     "summary": "Buyurtmangiz",
     "unavailable": "Hozircha onlayn buyurtma qabul qilinmayapti: yetkazib berish yoki toʻlov usullari sozlanmagan. Iltimos, biz bilan bogʻlaning.",
-    "cod": "Qabul qilganda toʻlash",
+    "cod": "Administrator bilan kelishib — oldindan toʻlov",
     "codHint": "Kuryerga naqd pul yoki karta orqali",
     "free": "Bepul",
     "eta": "{days} kun",
@@ -366,7 +366,22 @@
     "viewInAccount": "Hisobimda koʻrish",
     "guestNote": "Bu sahifa havolasini saqlab qoʻying — u orqali buyurtmangizni koʻrishingiz mumkin.",
     "priceOnRequest": "Kelishiladi",
-    "priceOnRequestHint": "Yetkazib berish narxini operator aytadi"
+    "priceOnRequestHint": "Yetkazib berish narxini operator aytadi",
+    "pay": {
+      "CASH_ON_DELIVERY": {
+        "name": "Administrator bilan kelishib — oldindan toʻlov",
+        "hint": "Buyurtmadan keyin administrator siz bilan bogʻlanib, toʻlov usulini kelishadi (karta yoki oʻtkazma)."
+      },
+      "PAYME": {
+        "name": "Payme orqali — oldindan toʻlov",
+        "hint": "Administrator Payme orqali toʻlov havolasini yuboradi."
+      },
+      "CLICK": {
+        "name": "Click orqali — oldindan toʻlov",
+        "hint": "Administrator Click orqali toʻlov havolasini yuboradi."
+      }
+    },
+    "prepayNote": "Toʻlov oldindan amalga oshiriladi. Mahsulot Xitoydan toʻlovdan keyin buyurtma qilinadi."
   },
   "lead": {
     "eyebrow": "Bogʻlanish",
@@ -433,6 +448,7 @@
     },
     "opening": "Buyurtma qabul qilindi — chek ochilmoqda…",
     "eta": "Taxminiy muddat",
-    "shippingTbd": "Kelishiladi"
+    "shippingTbd": "Kelishiladi",
+    "payWait": "Toʻlov oldindan: administrator siz bilan bogʻlanadi."
   }
 }

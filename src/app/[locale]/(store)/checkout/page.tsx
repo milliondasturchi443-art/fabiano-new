@@ -29,8 +29,11 @@ export default async function CheckoutPage({ params }: Props) {
     getCartView(locale),
     getSessionUser(),
     prisma.deliveryMethod.findMany({ where: { isEnabled: true }, orderBy: { sortOrder: "asc" } }),
-    prisma.paymentMethodConfig.findUnique({ where: { provider: "CASH_ON_DELIVERY" } }),
+    prisma.paymentMethodConfig.findMany({ where: { isEnabled: true }, select: { provider: true } }),
   ]);
+  // Порядок: по договорённости с администратором, затем Payme, Click
+  const ORDER = ["CASH_ON_DELIVERY", "PAYME", "CLICK"] as const;
+  const payments = ORDER.filter((p) => cod.some((c) => c.provider === p));
 
   // Пустая корзина: показываем сообщение без redirect (redirect во время экшена оформления обрывал ответ)
   if (cart.lines.length === 0) {
@@ -55,8 +58,7 @@ export default async function CheckoutPage({ params }: Props) {
     etaDays: m.etaDays,
     regions: m.regions,
   }));
-  const codEnabled = Boolean(cod?.isEnabled);
-  const ready = deliveries.length > 0 && codEnabled;
+  const ready = deliveries.length > 0 && payments.length > 0;
 
   return (
     <>
@@ -68,7 +70,7 @@ export default async function CheckoutPage({ params }: Props) {
             <CheckoutForm
               cart={cart}
               deliveries={deliveries}
-              codEnabled={codEnabled}
+              payments={[...payments]}
               prefill={{ firstName: user?.firstName, lastName: user?.lastName, phone: user?.phone ? formatUzPhone(user.phone) : null, email: user?.email }}
             />
           ) : (

@@ -24,13 +24,15 @@ export default async function AdminSettings() {
     prisma.paymentMethodConfig.findMany(),
   ]);
   const cod = payments.find((p) => p.provider === "CASH_ON_DELIVERY");
+  const payme = payments.find((p) => p.provider === "PAYME");
+  const click = payments.find((p) => p.provider === "CLICK");
   const courier = deliveries.find((d) => d.type === "COURIER");
   const pickup = deliveries.find((d) => d.type === "PICKUP");
   const paymeReady = Boolean(process.env.PAYME_MERCHANT_ID && process.env.PAYME_SECRET_KEY);
   const clickReady = Boolean(process.env.CLICK_SERVICE_ID && process.env.CLICK_SECRET_KEY);
   const decartReady = Boolean(process.env.DECART_API_KEY);
   const anywearOk = process.env.ANYWEAR_ENABLED === "1";
-  const canOrder = Boolean(cod?.isEnabled) && deliveries.some((d) => d.isEnabled);
+  const canOrder = Boolean(cod?.isEnabled || payme?.isEnabled || click?.isEnabled) && deliveries.some((d) => d.isEnabled);
   const n = (v: { toString(): string } | null | undefined) => (v && Number(v) > 0 ? String(Math.round(Number(v))) : "");
 
   return (
@@ -38,22 +40,25 @@ export default async function AdminSettings() {
       <h2 className="h">Toʻlov va yetkazish</h2>
       <p className="sub">Mijoz rasmiylashtirishda koʻradigan variantlar.</p>
       {!canOrder && (
-        <div className="anote">Xaridorlar buyurtma bera olishi uchun «Yetkazib berishda toʻlash» va kamida bitta yetkazib berish usulini yoqib, saqlang.</div>
+        <div className="anote">Xaridorlar buyurtma bera olishi uchun kamida bitta toʻlov usulini va bitta yetkazib berish usulini yoqib, saqlang.</div>
       )}
       <SaveForm action={savePaymentDeliveryAction}>
         <div className="panel">
           <div className="panel-h"><h4>Toʻlov usullari</h4></div>
-          <div className="srow">
-            <div><b>Yetkazib berishda toʻlash</b><span className="d">Naqd yoki karta orqali kuryerga. «Yetkazildi» holatida toʻlangan deb belgilanadi.</span></div>
-            <Switch name="cod" on={Boolean(cod?.isEnabled)} label="Yetkazib berishda toʻlash" />
+          <div className="srow" style={{ borderTop: 0 }}>
+            <span className="d">Toʻlov oldindan amalga oshiriladi. Mijoz buyurtmada qulay usulni tanlaydi, siz «Buyurtmalar»da «✓ Toʻlandi» deb belgilaysiz.</span>
           </div>
           <div className="srow">
-            <div><b>Payme</b><span className="d">{paymeReady ? "Kalitlar kiritilgan — ulanish keyingi bosqichda." : "Ulash uchun Payme’dan merchant kalitlari kerak."}</span></div>
-            <span className="sw" aria-disabled style={{ opacity: 0.35, cursor: "not-allowed" }} title="Kalitlar kerak" />
+            <div><b>Administrator bilan kelishib</b><span className="d">Buyurtmadan keyin siz mijozga qoʻngʻiroq qilib, toʻlovni kelishasiz (karta, oʻtkazma).</span></div>
+            <Switch name="cod" on={Boolean(cod?.isEnabled)} label="Administrator bilan kelishib" />
           </div>
           <div className="srow">
-            <div><b>Click</b><span className="d">{clickReady ? "Kalitlar kiritilgan — ulanish keyingi bosqichda." : "Ulash uchun Click merchant kalitlari kerak."}</span></div>
-            <span className="sw" aria-disabled style={{ opacity: 0.35, cursor: "not-allowed" }} title="Kalitlar kerak" />
+            <div><b>Payme</b><span className="d">{paymeReady ? "Kalitlar kiritilgan." : "Hozircha siz mijozga Payme orqali toʻlov havolasini (yoki chek) yuborasiz. Merchant kalitlari ulangach — avtomatik."}</span></div>
+            <Switch name="payme" on={Boolean(payme?.isEnabled)} label="Payme" />
+          </div>
+          <div className="srow">
+            <div><b>Click</b><span className="d">{clickReady ? "Kalitlar kiritilgan." : "Hozircha siz mijozga Click orqali toʻlov havolasini yuborasiz. Merchant kalitlari ulangach — avtomatik."}</span></div>
+            <Switch name="click" on={Boolean(click?.isEnabled)} label="Click" />
           </div>
         </div>
 

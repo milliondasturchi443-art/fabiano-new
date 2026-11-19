@@ -33,6 +33,8 @@ export default async function AdminOrders() {
       shipping: String(Math.round(Number(o.shippingTotal))),
       shippingText: Number(o.shippingTotal) > 0 ? money(o.shippingTotal) : "kelishiladi / bepul",
       editable: !["DELIVERED", "CANCELLED", "REFUNDED"].includes(o.status),
+      paid: o.paymentStatus === "PAID",
+      canPay: o.paymentStatus === "PENDING" && !["CANCELLED", "REFUNDED"].includes(o.status),
       next: [...ORDER_STATUS_TRANSITIONS[o.status as OrderStatus]],
       address: [a.region, a.district, a.street, a.house && `${a.house}-uy`, a.apartment && `${a.apartment}-xonadon`].filter(Boolean).join(", "),
       comment: o.customerComment ?? "",

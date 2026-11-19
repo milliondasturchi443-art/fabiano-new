@@ -21,11 +21,11 @@ export interface DeliveryOption {
 }
 
 export function CheckoutForm({
-  cart, deliveries, codEnabled, prefill,
+  cart, deliveries, payments, prefill,
 }: {
   cart: CartView;
   deliveries: DeliveryOption[];
-  codEnabled: boolean;
+  payments: ("CASH_ON_DELIVERY" | "PAYME" | "CLICK")[];
   prefill: { firstName?: string | null; lastName?: string | null; phone?: string | null; email?: string | null };
 }) {
   const t = useTranslations("checkout");
@@ -151,15 +151,17 @@ export function CheckoutForm({
         <fieldset>
           <legend className="text-3xl">{t("paymentMethod")}</legend>
           <div className="mt-6 space-y-3">
-            {codEnabled && (
-              <label className="flex cursor-pointer items-center gap-4 border border-line bg-paper p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#d8c4b2] has-[:checked]:border-gold has-[:checked]:shadow-[0_0_0_3px_rgb(92_20_34/0.1)]">
-                <input type="radio" name="paymentProvider" value="CASH_ON_DELIVERY" defaultChecked className="h-4 w-4 accent-[var(--color-gold)]" />
-                <span>
-                  <span className="block text-sm font-medium">{t("cod")}</span>
-                  <span className="block text-xs text-muted">{t("codHint")}</span>
+            {payments.map((p) => (
+              <label key={p} className="flex cursor-pointer items-center gap-4 border border-line bg-paper p-4 transition-[border-color,box-shadow] duration-200 hover:border-[#d8c4b2] has-[:checked]:border-gold has-[:checked]:shadow-[0_0_0_3px_rgb(92_20_34/0.1)]">
+                <input type="radio" name="paymentProvider" value={p} defaultChecked={(v.paymentProvider || payments[0]) === p} className="h-4 w-4 accent-[var(--color-gold)]" />
+                <span className="flex-1">
+                  <span className="block text-sm font-medium">{t(`pay.${p}.name`)}</span>
+                  <span className="block text-xs text-muted">{t(`pay.${p}.hint`)}</span>
                 </span>
+                {p !== "CASH_ON_DELIVERY" && <span className="font-caps text-[0.7rem] tracking-[0.15em] text-champagne">{p === "PAYME" ? "Payme" : "Click"}</span>}
               </label>
-            )}
+            ))}
+            <p className="text-xs text-muted">{t("prepayNote")}</p>
           </div>
         </fieldset>
       </div>

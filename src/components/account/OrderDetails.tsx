@@ -52,7 +52,7 @@ export async function OrderDetails({ order, locale }: { order: OrderView; locale
         )}
         <div>
           <p className="eyebrow text-muted">{t("payment")}</p>
-          <p className="mt-2">{payment?.provider === "CASH_ON_DELIVERY" ? tk("cod") : payment?.provider ?? "—"}</p>
+          <p className="mt-2">{payment?.provider ? tk(`pay.${payment.provider as "PAYME"}.name`) : "—"}</p>
           <p className="mt-1 text-muted">{t(`paymentStatuses.${order.paymentStatus}`)}</p>
         </div>
         <div>

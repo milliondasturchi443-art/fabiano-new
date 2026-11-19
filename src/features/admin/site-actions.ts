@@ -114,14 +114,16 @@ export async function savePaymentDeliveryAction(_prev: FormState, form: FormData
   const pickupAddr = String(form.get("pickupAddr") ?? "").trim().slice(0, 300);
   if (on("pickup") && !pickupAddr) return { error: "Olib ketish punkti manzilini yozing." };
   const eta = String(form.get("etaDays") ?? "").trim().slice(0, 10);
-  if (!on("cod")) return { error: "«Yetkazib berishda toʻlash» oʻchsa, mijozlar buyurtma bera olmaydi (Payme/Click hali ulanmagan)." };
+  if (!on("cod") && !on("payme") && !on("click")) return { error: "Kamida bitta toʻlov usulini yoqing — aks holda buyurtma berib boʻlmaydi." };
   if (!on("courier") && !on("pickup")) return { error: "Kamida bitta yetkazib berish usulini yoqing — aks holda buyurtma berib boʻlmaydi." };
 
-  await prisma.paymentMethodConfig.upsert({
-    where: { provider: "CASH_ON_DELIVERY" },
-    create: { provider: "CASH_ON_DELIVERY", isEnabled: on("cod") },
-    update: { isEnabled: on("cod") },
-  });
+  for (const [provider, key] of [["CASH_ON_DELIVERY", "cod"], ["PAYME", "payme"], ["CLICK", "click"]] as const) {
+    await prisma.paymentMethodConfig.upsert({
+      where: { provider },
+      create: { provider, isEnabled: on(key) },
+      update: { isEnabled: on(key) },
+    });
+  }
 
   const courier = await prisma.deliveryMethod.findFirst({ where: { type: "COURIER" }, orderBy: { sortOrder: "asc" } });
   const courierData = {

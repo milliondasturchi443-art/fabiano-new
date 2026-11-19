@@ -58,6 +58,21 @@ export async function setDeliveryDateAction(form: FormData) {
   revalidatePath("/admin", "layout");
 }
 
+/** Предоплата получена (по договорённости, Payme или Click вручную) — отмечает админ. */
+export async function markOrderPaidAction(form: FormData) {
+  const admin = await requireAdmin("orders:write");
+  const id = String(form.get("id") ?? "");
+  const o = await prisma.order.findUnique({ where: { id }, select: { status: true, paymentStatus: true, payments: { select: { id: true, status: true } } } });
+  if (!o || o.paymentStatus === "PAID" || ["CANCELLED", "REFUNDED"].includes(o.status)) return;
+  const p = o.payments.find((x) => x.status === "PENDING") ?? o.payments[0];
+  await prisma.$transaction([
+    ...(p ? [prisma.payment.update({ where: { id: p.id }, data: { status: "PAID", paidAt: new Date() } })] : []),
+    prisma.order.update({ where: { id }, data: { paymentStatus: "PAID" } }),
+    prisma.auditLog.create({ data: { actorId: admin.id, action: "order.mark_paid", entity: "Order", entityId: id } }),
+  ]);
+  revalidatePath("/admin", "layout");
+}
+
 /** Цена доставки по договорённости: админ вписывает её в заказ — меняется итог в чеке и сумма к оплате. */
 export async function setOrderShippingAction(form: FormData) {
   const admin = await requireAdmin("orders:write");

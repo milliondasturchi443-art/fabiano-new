@@ -51,9 +51,10 @@ export async function changeOrderStatus(orderId: string, to: OrderStatus, actorI
     }
 
     let paymentStatus = order.paymentStatus;
-    const cod = order.payments.find((p) => p.provider === "CASH_ON_DELIVERY");
-    if (to === "DELIVERED" && cod && cod.status !== "PAID") {
-      await tx.payment.update({ where: { id: cod.id }, data: { status: "PAID", paidAt: new Date() } });
+    // Оплата вперёд: если админ не отметил «Toʻlandi» раньше — при «Yetkazildi» считаем оплаченным
+    const pending = order.payments.find((p) => p.status === "PENDING");
+    if (to === "DELIVERED" && pending) {
+      await tx.payment.update({ where: { id: pending.id }, data: { status: "PAID", paidAt: new Date() } });
       paymentStatus = "PAID";
     }
     if (to === "CANCELLED" && paymentStatus === "PENDING") {

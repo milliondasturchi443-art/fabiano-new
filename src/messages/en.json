@@ -319,7 +319,7 @@
     "placeOrder": "Place order",
     "summary": "Your order",
     "unavailable": "Online orders are temporarily unavailable: delivery or payment methods are not set up yet. Please contact us.",
-    "cod": "Pay on delivery",
+    "cod": "By agreement with the administrator — prepayment",
     "codHint": "Cash or card to the courier",
     "free": "Free",
     "eta": "{days} days",
@@ -366,7 +366,22 @@
     "viewInAccount": "View in account",
     "guestNote": "Save the link to this page — you can use it to view your order.",
     "priceOnRequest": "To be agreed",
-    "priceOnRequestHint": "The operator will confirm the delivery cost"
+    "priceOnRequestHint": "The operator will confirm the delivery cost",
+    "pay": {
+      "CASH_ON_DELIVERY": {
+        "name": "By agreement with the administrator — prepayment",
+        "hint": "After you order, the administrator will contact you to agree on the payment method (card or transfer)."
+      },
+      "PAYME": {
+        "name": "Via Payme — prepayment",
+        "hint": "The administrator will send you a Payme payment link."
+      },
+      "CLICK": {
+        "name": "Via Click — prepayment",
+        "hint": "The administrator will send you a Click payment link."
+      }
+    },
+    "prepayNote": "Payment is made in advance. The item is ordered from China after payment."
   },
   "lead": {
     "eyebrow": "Get in touch",
@@ -433,6 +448,7 @@
     },
     "opening": "Order placed — opening your receipt…",
     "eta": "Estimated time",
-    "shippingTbd": "To be agreed"
+    "shippingTbd": "To be agreed",
+    "payWait": "Prepayment: the administrator will contact you."
   }
 }

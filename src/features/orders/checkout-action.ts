@@ -24,7 +24,7 @@ const schema = z.object({
   apartment: z.string().trim().max(30).optional().or(z.literal("")),
   comment: z.string().trim().max(500).optional().or(z.literal("")),
   deliveryMethodId: z.string().min(1).max(40),
-  paymentProvider: z.literal("CASH_ON_DELIVERY"),
+  paymentProvider: z.enum(["CASH_ON_DELIVERY", "PAYME", "CLICK"]),
 });
 
 export async function checkoutAction(_prev: CheckoutState, form: FormData): Promise<CheckoutState> {

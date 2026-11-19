@@ -2,12 +2,12 @@
 
 import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
-import { setDeliveryDateAction, setOrderShippingAction, setOrderStatusAction } from "@/features/admin/store-actions";
+import { markOrderPaidAction, setDeliveryDateAction, setOrderShippingAction, setOrderStatusAction } from "@/features/admin/store-actions";
 import { ORDER_ST, ORDER_STATUS, PROVIDER } from "@/components/admin/labels";
 
 export interface OrderRow {
   id: string; number: string; date: string; name: string; phone: string; phoneRaw: string;
-  total: string; count: number; status: string; next: string[]; deliveryDate: string; shipping: string; shippingText: string; editable: boolean;
+  total: string; count: number; status: string; next: string[]; deliveryDate: string; shipping: string; shippingText: string; editable: boolean; paid: boolean; canPay: boolean;
   address: string; comment: string; delivery: string; payment: string;
   items: { name: string; color: string; size: string; qty: number; total: string }[];
   search: string;
@@ -44,10 +44,10 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
       </div>
       <div className="atw">
         <table className="atbl">
-          <thead><tr><th>Raqam</th><th>Sana</th><th>Mijoz</th><th>Telefon</th><th>Soni</th><th>Summa</th><th>Yetkazish kuni</th><th>Holat</th></tr></thead>
+          <thead><tr><th>Raqam</th><th>Sana</th><th>Mijoz</th><th>Telefon</th><th>Soni</th><th>Summa</th><th>Toʻlov</th><th>Yetkazish kuni</th><th>Holat</th></tr></thead>
           <tbody>
             {list.length === 0 && (
-              <tr><td colSpan={8} style={{ textAlign: "center", padding: 46, color: "var(--mut)" }}>{rows.length ? "Hech narsa topilmadi" : "Hozircha buyurtmalar yoʻq"}</td></tr>
+              <tr><td colSpan={9} style={{ textAlign: "center", padding: 46, color: "var(--mut)" }}>{rows.length ? "Hech narsa topilmadi" : "Hozircha buyurtmalar yoʻq"}</td></tr>
             )}
             {list.map((o) => (
               <Fragment key={o.id}>
@@ -58,12 +58,13 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                   <td className="pn">{o.phone}</td>
                   <td>{o.count}</td>
                   <td className="pn">{o.total}</td>
+                  <td><span className={`st ${o.paid ? "s3" : "s0"}`}>{o.paid ? "Toʻlangan" : "Kutilmoqda"}</span></td>
                   <td style={{ whiteSpace: "nowrap" }}>{o.deliveryDate ? fmtDay(o.deliveryDate) : <span style={{ color: "var(--mut)" }}>—</span>}</td>
                   <td><span className={`st ${ORDER_ST[o.status]}`}>{ORDER_STATUS[o.status]?.label}</span></td>
                 </tr>
                 {open === o.id && (
                   <tr>
-                    <td colSpan={8} className="od">
+                    <td colSpan={9} className="od">
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 24 }}>
                         <div>
                           <h5>MIJOZ VA MANZIL</h5>
@@ -72,7 +73,13 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                           <p>{o.address}</p>
                           {o.comment && <p style={{ color: "var(--mut)" }}>Izoh: {o.comment}</p>}
                           <p>Yetkazish: <b>{o.delivery}</b></p>
-                          {o.payment && <p>Toʻlov: <b>{PROVIDER[o.payment] ?? o.payment}</b></p>}
+                          {o.payment && <p>Toʻlov: <b>{PROVIDER[o.payment] ?? o.payment}</b> · {o.paid ? <span style={{ color: "var(--ok)" }}>toʻlangan</span> : <span style={{ color: "#f0c27a" }}>kutilmoqda</span>}</p>}
+                          {o.canPay && (
+                            <form action={markOrderPaidAction} style={{ marginTop: 8 }}>
+                              <input type="hidden" name="id" value={o.id} />
+                              <button type="submit" className="mb on">✓ Toʻlandi</button>
+                            </form>
+                          )}
                         </div>
                         <div>
                           <h5>MAHSULOTLAR</h5>

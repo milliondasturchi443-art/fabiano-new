@@ -22,4 +22,4 @@ export const PAYMENT_STATUS: Record<string, string> = {
   REFUNDED: "Qaytarildi",
 };
 
-export const PROVIDER: Record<string, string> = { CASH_ON_DELIVERY: "Qabul qilganda", PAYME: "Payme", CLICK: "Click" };
+export const PROVIDER: Record<string, string> = { CASH_ON_DELIVERY: "Oldindan (kelishib)", PAYME: "Payme (oldindan)", CLICK: "Click (oldindan)" };

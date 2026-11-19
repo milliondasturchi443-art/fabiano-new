@@ -76,7 +76,8 @@ export async function Receipt({ order, locale, eta }: { order: OrderView; locale
           <dd className="text-right">{[a.region, a.district, a.street, a.house && `${a.house}`, a.apartment && `kv. ${a.apartment}`].filter(Boolean).join(", ")}</dd>
         </div>
         <div className={row}><dt className="text-[#6f6259]">{t("delivery")}</dt><dd className="text-right">{order.delivery.name}</dd></div>
-        <div className={row}><dt className="text-[#6f6259]">{t("payment")}</dt><dd className="text-right">{payment?.provider === "CASH_ON_DELIVERY" ? tk("cod") : payment?.provider ?? "—"} · {ta(`paymentStatuses.${order.paymentStatus}`)}</dd></div>
+        <div className={row}><dt className="text-[#6f6259]">{t("payment")}</dt><dd className="text-right">{payment?.provider ? tk(`pay.${payment.provider as "PAYME"}.name`) : "—"} · {ta(`paymentStatuses.${order.paymentStatus}`)}</dd></div>
+        {order.paymentStatus === "PENDING" && !cancelled && <p className="pb-1 text-right text-xs italic text-[#8a7d70]">{t("payWait")}</p>}
         {order.customerComment && <div className={row}><dt className="text-[#6f6259]">{tk("comment")}</dt><dd className="text-right italic">{order.customerComment}</dd></div>}
       </dl>
 
