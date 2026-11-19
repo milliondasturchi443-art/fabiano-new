@@ -26,8 +26,8 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "DENY" },
-          // camera=(self) — нужна для Fabiano Live Try-On
-          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+          // Камера: нашей примерке (self) и окну Anywear (iframe с anywear.decart.ai), иначе «doesn't allow camera access»
+          { key: "Permissions-Policy", value: 'camera=(self "https://anywear.decart.ai"), microphone=(), geolocation=()' },
         ],
       },
     ];
