@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { fontVars } from "@/lib/fonts";
 import { ErrorListener } from "@/components/ui/ErrorListener";
 import "@/styles/globals.css";
+import "@/styles/admin.css";
 
 export const metadata: Metadata = {
   title: { default: "FABIANO Admin", template: "%s — FABIANO Admin" },

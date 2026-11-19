@@ -1,3 +1,4 @@
+import type { SiteTexts } from "@/lib/site-content";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
@@ -20,10 +21,10 @@ function Accent({ text }: { text: string }) {
  * по бокам Erkaklar/Ayollar (фото первого товара или вешалка), в центре вышитый логотип на бархате.
  * Если в Dashboard загружен баннер — он встаёт в центральную арку вместо логотипа.
  */
-export async function Hero({ data, covers }: { data: HeroData | null; covers: { men: string | null; women: string | null } }) {
+export async function Hero({ data, covers, texts = {} }: { data: HeroData | null; covers: { men: string | null; women: string | null }; texts?: SiteTexts }) {
   const [t, tn, th] = await Promise.all([getTranslations("hero"), getTranslations("nav"), getTranslations("home")]);
-  const title = data?.title || t("title");
-  const subtitle = data?.subtitle || t("subtitle");
+  const title = texts.heroTitle || data?.title || t("title");
+  const subtitle = texts.heroText || data?.subtitle || t("subtitle");
 
   const side = (href: string, label: string, img: string | null) => (
     <Link href={href} className="group relative hidden h-[440px] rounded-t-full border border-gold/50 p-[9px] transition-transform duration-[600ms] ease-[var(--ease-fabiano)] hover:-translate-y-1.5 md:block">
@@ -46,7 +47,7 @@ export async function Hero({ data, covers }: { data: HeroData | null; covers: { 
     <section className="relative overflow-hidden pb-10 pt-8 text-center md:pt-14">
       <div className="pointer-events-none absolute left-1/2 top-[40%] h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(circle,rgb(92_14_29/0.35),transparent_60%)]" aria-hidden />
       <div className="page-x relative mx-auto max-w-[var(--container-page)]">
-        <p className="fade-up eyebrow text-[0.66rem] tracking-[0.45em] text-gold md:text-xs md:tracking-[0.6em]">{t("eyebrow")}</p>
+        <p className="fade-up eyebrow text-[0.66rem] tracking-[0.45em] text-gold md:text-xs md:tracking-[0.6em]">{texts.heroEyebrow || t("eyebrow")}</p>
         <h1 className="fade-up mx-auto mb-2.5 mt-4 max-w-[1100px] text-[clamp(2.875rem,7vw,6rem)] leading-[1.02] [animation-delay:100ms]">
           <Accent text={title} />
         </h1>
@@ -74,8 +75,8 @@ export async function Hero({ data, covers }: { data: HeroData | null; covers: { 
         </div>
 
         <div className="fade-up relative z-[4] -mt-[22px] grid grid-cols-2 gap-2 px-1 [animation-delay:340ms] md:-mt-[27px] md:flex md:justify-center md:gap-3.5">
-          <Link href="/men" className="btn btn-primary min-h-12 whitespace-normal px-2 text-center text-[0.6rem] tracking-[0.16em] md:min-h-[3.375rem] md:px-8 md:text-[0.72rem] md:tracking-[0.26em]">{t("shopMen")}</Link>
-          <Link href="/women" className="btn btn-outline min-h-12 whitespace-normal px-2 text-center text-[0.6rem] tracking-[0.16em] md:min-h-[3.375rem] md:px-8 md:text-[0.72rem] md:tracking-[0.26em]">{t("shopWomen")}</Link>
+          <Link href="/men" className="btn btn-primary min-h-12 whitespace-normal px-2 text-center text-[0.6rem] tracking-[0.16em] md:min-h-[3.375rem] md:px-8 md:text-[0.72rem] md:tracking-[0.26em]">{texts.btnMen || t("shopMen")}</Link>
+          <Link href="/women" className="btn btn-outline min-h-12 whitespace-normal px-2 text-center text-[0.6rem] tracking-[0.16em] md:min-h-[3.375rem] md:px-8 md:text-[0.72rem] md:tracking-[0.26em]">{texts.btnWomen || t("shopWomen")}</Link>
         </div>
       </div>
     </section>

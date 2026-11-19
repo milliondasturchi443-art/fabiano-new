@@ -13,7 +13,7 @@ type T3 = { uz: string; ru: string; en: string };
 const ROLES: { name: string; permissions: string[] }[] = [
   { name: "customer", permissions: [] },
   { name: "content_editor", permissions: ["admin:access", "content:write", "products:read", "collections:write"] },
-  { name: "manager", permissions: ["admin:access", "products:write", "orders:write", "customers:read", "coupons:write", "inventory:write"] },
+  { name: "manager", permissions: ["admin:access", "products:read", "products:write", "orders:read", "orders:write", "customers:read", "coupons:write", "inventory:write"] },
   { name: "admin", permissions: ["*"] },
 ];
 

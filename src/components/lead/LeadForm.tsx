@@ -7,7 +7,7 @@ import { formatUzPhoneInput } from "@/lib/validate-contact";
 import { PhoneInput } from "./PhoneInput";
 
 /** Блок «Raqamingizni qoldiring»: заявка сохраняется в базе и видна в админке (Murojaatlar). */
-export function LeadForm({ productId, page }: { productId?: string; page?: string }) {
+export function LeadForm({ productId, page, title, text }: { productId?: string; page?: string; title?: string; text?: string }) {
   const t = useTranslations("lead");
   const [state, action, pending] = useActionState<LeadState, FormData>(submitLeadAction, { status: "idle" });
   const err = state.status === "error" ? state : null;
@@ -17,8 +17,8 @@ export function LeadForm({ productId, page }: { productId?: string; page?: strin
     <div className="grid border border-line bg-paper lg:grid-cols-[1fr_1.15fr]">
       <div className="border-b border-line bg-[radial-gradient(ellipse_at_20%_0%,rgb(122_26_45/0.65),transparent_70%),var(--color-surface)] px-6 py-8 lg:border-b-0 lg:border-r lg:p-[52px]">
         <p className="eyebrow text-champagne">{t("eyebrow")}</p>
-        <h2 className="mb-4 mt-3.5 text-[2.125rem] leading-[1.05] lg:text-[2.75rem]">{t("title")}</h2>
-        <p className="font-light text-muted">{t("text")}</p>
+        <h2 className="mb-4 mt-3.5 text-[2.125rem] leading-[1.05] lg:text-[2.75rem]">{title || t("title")}</h2>
+        <p className="font-light text-muted">{text || t("text")}</p>
       </div>
 
       {state.status === "ok" ? (

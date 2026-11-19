@@ -8,6 +8,11 @@ export const ORDER_STATUS: Record<string, { label: string; cls: string }> = {
   REFUNDED: { label: "Qaytarish", cls: "bg-danger/10 text-danger" },
 };
 
+/** Классы бейджа статуса в стиле прототипа (.st.sN). */
+export const ORDER_ST: Record<string, string> = {
+  PENDING: "s0", CONFIRMED: "s1", PROCESSING: "s2", SHIPPED: "s5", DELIVERED: "s3", CANCELLED: "s4", REFUNDED: "s4",
+};
+
 export const PAYMENT_STATUS: Record<string, string> = {
   PENDING: "Toʻlov kutilmoqda",
   AUTHORIZED: "Avtorizatsiya qilingan",

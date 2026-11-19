@@ -1,16 +1,14 @@
+import { getLocale } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { getStoreSettings } from "@/services/catalog";
+import { isLocale } from "@/i18n/routing";
 
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getStoreSettings().catch(() => null);
+  const [settings, l] = await Promise.all([getStoreSettings().catch(() => null), getLocale()]);
   return (
     <>
       {children}
-      <Footer
-        socials={settings?.socials as { instagram?: string; telegram?: string } | null}
-        contactPhone={settings?.contactPhone}
-        contactEmail={settings?.contactEmail}
-      />
+      <Footer settings={settings} locale={isLocale(l) ? l : "uz"} />
     </>
   );
 }

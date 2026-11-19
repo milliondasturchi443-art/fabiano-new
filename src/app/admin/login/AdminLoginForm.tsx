@@ -1,23 +1,23 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState } from "react";
 import { adminLoginAction } from "@/features/admin/auth-actions";
 
 export function AdminLoginForm() {
-  const [state, action, pending] = useActionState(adminLoginAction, null);
-  const input = "field mt-1.5";
+  const [state, dispatch, pending] = useActionState(adminLoginAction, null);
   return (
-    <form action={action} className="space-y-5">
-      <label className="block">
-        <span className="text-xs font-medium text-muted">Email</span>
-        <input name="email" type="email" required autoComplete="username" className={input} />
-      </label>
-      <label className="block">
-        <span className="text-xs font-medium text-muted">Parol</span>
-        <input name="password" type="password" required autoComplete="current-password" className={input} />
-      </label>
-      {state?.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
-      <button type="submit" disabled={pending} className="btn btn-primary w-full disabled:opacity-50">Kirish</button>
+    <form
+      noValidate
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        startTransition(() => dispatch(fd));
+      }}
+    >
+      <div className="fld"><label htmlFor="l-e">Login</label><input id="l-e" className="inp" name="email" type="email" autoComplete="username" placeholder="admin@fabiano.uz" /></div>
+      <div className="fld"><label htmlFor="l-p">Parol</label><input id="l-p" className="inp" name="password" type="password" autoComplete="current-password" placeholder="Parol" /></div>
+      {state?.error && <p role="alert" style={{ color: "#ff8a8a", fontSize: 13 }}>{state.error}</p>}
+      <button type="submit" disabled={pending} className="btn btn-primary w-full disabled:opacity-50">{pending ? "Tekshirilmoqda…" : "Kirish"}</button>
     </form>
   );
 }

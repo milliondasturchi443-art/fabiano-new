@@ -31,6 +31,20 @@ export async function changeOrderStatusAction(_prev: FormState, form: FormData):
   return { ok: "Holat yangilandi." };
 }
 
+/** Кнопки статусов в списке заказов (без формы состояния). */
+export async function setOrderStatusAction(form: FormData) {
+  const admin = await requireAdmin("orders:write");
+  const id = String(form.get("id") ?? "");
+  const to = String(form.get("to") ?? "") as OrderStatus;
+  try {
+    await changeOrderStatus(id, to, admin.id, "");
+  } catch (e) {
+    if (!(e instanceof StatusError)) console.error("[admin] status", e);
+  }
+  revalidatePath("/admin", "layout");
+  revalidatePath("/", "layout");
+}
+
 // ── Промокоды ───────────────────────────────────────
 
 const couponSchema = z.object({
@@ -202,13 +216,13 @@ export async function toggleLeadAction(form: FormData) {
     const done = lead.status === "NEW";
     await prisma.lead.update({ where: { id }, data: { status: done ? "DONE" : "NEW", handledAt: done ? new Date() : null } });
   }
-  revalidatePath("/admin/leads");
+  revalidatePath("/admin", "layout");
 }
 
 export async function deleteLeadAction(form: FormData) {
   await requireAdmin("*");
   await prisma.lead.deleteMany({ where: { id: String(form.get("id") ?? "") } });
-  revalidatePath("/admin/leads");
+  revalidatePath("/admin", "layout");
 }
 
 // ── Matnlar: e'lon va «Biz haqimizda» ─────────────────

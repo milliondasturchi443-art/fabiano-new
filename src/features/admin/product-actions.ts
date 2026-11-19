@@ -6,26 +6,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { deleteStoredImage, storeImage, UploadError } from "@/lib/media-store";
 import { requireAdmin } from "./guard";
-import type { FormState } from "./auth-actions";
 
-const money = z.string().trim().regex(/^\d{1,12}(\.\d{1,2})?$/, "price");
 const LOCALES = ["uz", "ru", "en"] as const;
-
-const schema = z.object({
-  id: z.string().optional(),
-  sku: z.string().trim().toUpperCase().regex(/^[A-Z0-9-]{2,30}$/),
-  slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(80).optional().or(z.literal("")),
-  brand: z.string().trim().min(1).max(40),
-  gender: z.enum(["MEN", "WOMEN", "UNISEX"]),
-  categoryId: z.string().min(1),
-  price: money,
-  compareAtPrice: money.optional().or(z.literal("")),
-  status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]),
-  isNew: z.boolean(),
-  isFeatured: z.boolean(),
-});
-
-const variantsSchema = z.array(z.object({ colorId: z.string().min(1), sizeId: z.string().min(1), stock: z.number().int().min(0).max(100000) })).max(400);
 
 function slugify(s: string) {
   const map: Record<string, string> = { "ʻ": "", "'": "", "’": "", ш: "sh", ч: "ch", щ: "sch", ж: "zh", ю: "yu", я: "ya", ё: "yo", х: "h", ц: "ts", ы: "y", э: "e", й: "y" };
@@ -42,137 +24,195 @@ function slugify(s: string) {
     .slice(0, 70);
 }
 
-export async function saveProductAction(_prev: FormState, form: FormData): Promise<FormState> {
+export type ProductEditorState = { error?: string } | null;
+
+const editorSchema = z.object({
+  id: z.string().optional(),
+  name_uz: z.string().trim().min(2).max(120),
+  gender: z.enum(["MEN", "WOMEN", "UNISEX"]),
+  categoryId: z.string().min(1),
+  price: z.string().trim().regex(/^\d{1,12}$/),
+  disc: z.string().trim().regex(/^\d{0,2}$/),
+});
+
+const stockSchema = z.array(z.object({ colorId: z.string().min(1), sizeId: z.string().min(1), stock: z.number().int().min(0).max(100000) })).max(400);
+const orderSchema = z.array(z.string().regex(/^(old:[a-z0-9]+|new:\d{1,2})$/)).max(20);
+
+/**
+ * Сохранение товара из упрощённой формы (как в прототипе): тексты, цена со скидкой в %,
+ * цвета, остатки по размерам и фото — всё одним запросом.
+ */
+export async function saveProductEditorAction(_prev: ProductEditorState, form: FormData): Promise<ProductEditorState> {
   const admin = await requireAdmin("products:write");
-  const parsed = schema.safeParse({
+  const parsed = editorSchema.safeParse({
     id: form.get("id") || undefined,
-    sku: form.get("sku"),
-    slug: form.get("slug") ?? "",
-    brand: form.get("brand") || "FABIANO",
+    name_uz: form.get("name_uz"),
     gender: form.get("gender"),
     categoryId: form.get("categoryId"),
-    price: form.get("price"),
-    compareAtPrice: form.get("compareAtPrice") ?? "",
-    status: form.get("status"),
-    isNew: form.get("isNew") === "on",
-    isFeatured: form.get("isFeatured") === "on",
+    price: String(form.get("price") ?? "").replace(/\s/g, ""),
+    disc: String(form.get("disc") ?? "").trim(),
   });
   if (!parsed.success) {
     const f = String(parsed.error.issues[0]?.path[0] ?? "");
-    const msg: Record<string, string> = {
-      sku: "Artikul: 2–30 belgi, lotin harflari, raqamlar va chiziqcha.",
-      slug: "Manzil (slug): lotin harflari, raqamlar va chiziqchalar.",
-      price: "Narxni raqam bilan kiriting, masalan 289000.",
-      compareAtPrice: "Eski narx — raqam bilan, masalan 349000.",
-      categoryId: "Toifani tanlang.",
+    return {
+      error: ({
+        name_uz: "Mahsulot nomini yozing (kamida 2 ta harf).",
+        categoryId: "Kategoriyani tanlang.",
+        price: "Narxni faqat raqam bilan yozing, masalan 450000.",
+        disc: "Chegirma 0 dan 90 gacha boʻlgan son boʻlishi kerak.",
+      } as Record<string, string>)[f] ?? "Maydonlarni tekshiring.",
     };
-    return { error: msg[f] ?? "Maydonlar toʻgʻri toʻldirilganini tekshiring." };
   }
   const d = parsed.data;
-  if (d.compareAtPrice && Number(d.compareAtPrice) <= Number(d.price)) return { error: "Eski narx joriy narxdan katta boʻlishi kerak." };
-  if (Number(d.price) <= 0) return { error: "Narx noldan katta boʻlishi kerak." };
+  const base = Number(d.price);
+  const disc = Number(d.disc || 0);
+  if (base <= 0) return { error: "Narx noldan katta boʻlishi kerak." };
+  if (disc > 90) return { error: "Chegirma 90% dan oshmasin." };
+  const finalPrice = disc > 0 ? Math.max(100, Math.round((base * (100 - disc)) / 100 / 100) * 100) : base;
+  const active = form.get("active") === "on";
 
-  const tr = LOCALES.map((l) => ({
-    locale: l,
-    name: String(form.get(`name_${l}`) ?? "").trim(),
-    description: String(form.get(`description_${l}`) ?? "").trim(),
-    material: String(form.get(`material_${l}`) ?? "").trim() || null,
-    care: String(form.get(`care_${l}`) ?? "").trim() || null,
-  }));
-  for (const l of ["uz", "ru"] as const) {
-    const t = tr.find((x) => x.locale === l)!;
-    if (!t.name || !t.description) return { error: `Nomi va tavsifini toʻldiring (${l.toUpperCase()}).` };
-  }
-  const translations = tr.filter((t) => t.name && t.description);
-
-  let variants: z.infer<typeof variantsSchema>;
+  let stock: z.infer<typeof stockSchema>;
+  let order: z.infer<typeof orderSchema>;
   try {
-    variants = variantsSchema.parse(JSON.parse(String(form.get("variants") ?? "[]")));
+    stock = stockSchema.parse(JSON.parse(String(form.get("stock") ?? "[]")));
+    order = orderSchema.parse(JSON.parse(String(form.get("imageOrder") ?? "[]")));
   } catch {
-    return { error: "Variantlar maʼlumotlari notoʻgʻri." };
+    return { error: "Formadagi maʼlumotlar notoʻgʻri. Sahifani yangilab qayta urinib koʻring." };
   }
-  if (d.status === "ACTIVE" && variants.length === 0) return { error: "Mahsulotni chop etish uchun kamida bitta rang va oʻlcham qoʻshing." };
+  const colorIds = form.getAll("colorIds").map(String).filter(Boolean);
+  if (colorIds.length === 0) return { error: "Kamida bitta rangni tanlang." };
+  stock = stock.filter((s) => colorIds.includes(s.colorId));
+  if (active && !stock.some((s) => s.stock > 0)) return { error: "Sotuvga chiqarish uchun kamida bitta oʻlcham sonini yozing." };
 
-  const collectionIds = form.getAll("collectionIds").map(String).filter(Boolean);
-  const nameForSlug = tr.find((t) => t.locale === "en")?.name || tr.find((t) => t.locale === "uz")!.name;
-  const slug = d.slug || `${slugify(nameForSlug) || "product"}-${d.sku.toLowerCase()}`;
+  const files = form.getAll("newImages").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length > 12) return { error: "Bir martada 12 tadan koʻp rasm yuklab boʻlmaydi." };
+  if (active && order.length === 0) return { error: "Kamida bitta rasm qoʻshing." };
 
-  const clash = await prisma.product.findFirst({
-    where: { OR: [{ slug }, { sku: d.sku }], ...(d.id ? { NOT: { id: d.id } } : {}) },
-    select: { slug: true, sku: true },
-  });
-  if (clash) return { error: clash.sku === d.sku ? "Bunday artikulli mahsulot allaqachon bor." : "Bu manzil (slug) band." };
+  const txt = (k: string, max: number) => String(form.get(k) ?? "").trim().slice(0, max);
+  const names = { uz: d.name_uz, ru: txt("name_ru", 120) || d.name_uz, en: txt("name_en", 120) || d.name_uz };
+  const descUz = txt("desc_uz", 4000);
+  const descs = { uz: descUz, ru: txt("desc_ru", 4000) || descUz, en: txt("desc_en", 4000) || descUz };
+  const material = txt("material", 300) || null;
+  const care = txt("care", 300) || null;
+  const collectionId = txt("collectionId", 40);
+
+  const existing = d.id ? await prisma.product.findUnique({ where: { id: d.id }, select: { id: true, sku: true, slug: true, publishedAt: true } }) : null;
+  if (d.id && !existing) return { error: "Mahsulot topilmadi." };
+  let sku = existing?.sku ?? "";
+  if (!sku) {
+    for (let i = 0; i < 5 && !sku; i++) {
+      const candidate = `FB-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      if (!(await prisma.product.findUnique({ where: { sku: candidate }, select: { id: true } }))) sku = candidate;
+    }
+    if (!sku) return { error: "Artikul yaratib boʻlmadi, qayta urinib koʻring." };
+  }
+  const slug = existing?.slug ?? `${slugify(names.en) || slugify(names.uz) || "mahsulot"}-${sku.toLowerCase()}`;
+
+  // Сначала сохраняем фото (вне транзакции: sharp и запись байтов могут занять время)
+  const stored: { storageKey: string; width: number; height: number }[] = [];
+  for (const f of files) {
+    try {
+      stored.push(await storeImage(f));
+    } catch (e) {
+      for (const s of stored) await deleteStoredImage(s.storageKey);
+      const code = e instanceof UploadError ? e.code : "ERROR";
+      return { error: `Rasm yuklanmadi (${f.name}): ${({ TOO_LARGE: "12 MB dan katta", NOT_IMAGE: "rasm emas", UNSUPPORTED: "format qoʻllab-quvvatlanmaydi", EMPTY: "boʻsh fayl" } as Record<string, string>)[code] ?? "xato"}.` };
+    }
+  }
 
   const [colors, sizes] = await Promise.all([prisma.color.findMany(), prisma.size.findMany()]);
   const colorById = new Map(colors.map((c) => [c.id, c]));
   const sizeById = new Map(sizes.map((s) => [s.id, s]));
+  let removedKeys: string[] = [];
 
-  let productId: string;
   try {
-    productId = await prisma.$transaction(async (tx) => {
-      const existing = d.id ? await tx.product.findUnique({ where: { id: d.id }, select: { publishedAt: true } }) : null;
-      if (d.id && !existing) throw new Error("NOT_FOUND");
+    await prisma.$transaction(async (tx) => {
       const data = {
-        sku: d.sku,
+        sku,
         slug,
-        brand: d.brand,
         gender: d.gender,
         categoryId: d.categoryId,
-        price: d.price,
-        compareAtPrice: d.compareAtPrice || null,
-        status: d.status,
-        isNew: d.isNew,
-        isFeatured: d.isFeatured,
-        publishedAt: d.status === "ACTIVE" ? existing?.publishedAt ?? new Date() : existing?.publishedAt ?? null,
+        price: String(finalPrice),
+        compareAtPrice: disc > 0 ? String(base) : null,
+        status: active ? ("ACTIVE" as const) : ("DRAFT" as const),
+        isNew: form.get("isNew") === "on",
+        isFeatured: form.get("isFeatured") === "on",
+        publishedAt: active ? existing?.publishedAt ?? new Date() : existing?.publishedAt ?? null,
       };
-      const p = d.id ? await tx.product.update({ where: { id: d.id }, data }) : await tx.product.create({ data });
+      const p = existing ? await tx.product.update({ where: { id: existing.id }, data }) : await tx.product.create({ data: { ...data, brand: "FABIANO" } });
 
-      await tx.productTranslation.deleteMany({ where: { productId: p.id, locale: { notIn: translations.map((t) => t.locale) } } });
-      for (const t of translations) {
+      for (const l of LOCALES) {
+        const row = { name: names[l], description: descs[l], material, care };
         await tx.productTranslation.upsert({
-          where: { productId_locale: { productId: p.id, locale: t.locale } },
-          create: { productId: p.id, ...t },
-          update: { name: t.name, description: t.description, material: t.material, care: t.care },
+          where: { productId_locale: { productId: p.id, locale: l } },
+          create: { productId: p.id, locale: l, ...row },
+          update: row,
         });
       }
 
       await tx.productCollection.deleteMany({ where: { productId: p.id } });
-      if (collectionIds.length) await tx.productCollection.createMany({ data: collectionIds.map((collectionId) => ({ productId: p.id, collectionId })) });
+      if (collectionId) await tx.productCollection.create({ data: { productId: p.id, collectionId } });
 
       const keep: string[] = [];
-      for (const v of variants) {
+      for (const v of stock) {
         const color = colorById.get(v.colorId);
         const size = sizeById.get(v.sizeId);
         if (!color || !size) continue;
-        const sku = `${d.sku}-${color.code}-${size.code}`.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+        const vsku = `${sku}-${color.code}-${size.code}`.toUpperCase().replace(/[^A-Z0-9-]/g, "");
         const variant = await tx.productVariant.upsert({
           where: { productId_colorId_sizeId: { productId: p.id, colorId: color.id, sizeId: size.id } },
-          create: { productId: p.id, colorId: color.id, sizeId: size.id, sku },
-          update: { isActive: true, sku },
+          create: { productId: p.id, colorId: color.id, sizeId: size.id, sku: vsku },
+          update: { isActive: true, sku: vsku },
         });
         keep.push(variant.id);
         const inv = await tx.inventory.findUnique({ where: { variantId: variant.id } });
         if (inv && v.stock < inv.reserved) throw new Error(`RESERVED:${color.code}/${size.code}:${inv.reserved}`);
         await tx.inventory.upsert({ where: { variantId: variant.id }, create: { variantId: variant.id, quantity: v.stock }, update: { quantity: v.stock } });
       }
-      // Снятые варианты не удаляем (история заказов), а выключаем
       await tx.productVariant.updateMany({ where: { productId: p.id, id: { notIn: keep } }, data: { isActive: false } });
 
-      await tx.auditLog.create({ data: { actorId: admin.id, action: d.id ? "product.update" : "product.create", entity: "Product", entityId: p.id } });
-      return p.id;
+      // Фото: порядок из формы; старые, которых нет в списке, удаляем
+      const oldImages = await tx.productImage.findMany({ where: { productId: p.id } });
+      const keepOld = new Set(order.filter((o) => o.startsWith("old:")).map((o) => o.slice(4)));
+      const removed = oldImages.filter((i) => !keepOld.has(i.id));
+      if (removed.length) await tx.productImage.deleteMany({ where: { id: { in: removed.map((i) => i.id) } } });
+      removedKeys = removed.map((i) => i.storageKey);
+      for (const [pos, ref] of order.entries()) {
+        if (ref.startsWith("old:")) {
+          await tx.productImage.updateMany({ where: { id: ref.slice(4), productId: p.id }, data: { sortOrder: pos } });
+        } else {
+          const s = stored[Number(ref.slice(4))];
+          if (s) await tx.productImage.create({ data: { productId: p.id, storageKey: s.storageKey, width: s.width, height: s.height, sortOrder: pos } });
+        }
+      }
+
+      await tx.auditLog.create({ data: { actorId: admin.id, action: existing ? "product.update" : "product.create", entity: "Product", entityId: p.id } });
     });
   } catch (e) {
+    for (const s of stored) await deleteStoredImage(s.storageKey);
     const m = e instanceof Error ? e.message : "";
     if (m.startsWith("RESERVED:")) {
       const [, combo, n] = m.split(":");
-      return { error: `Qoldiqni ${combo} dan kam qoʻyib boʻlmaydi: ${n}: shuncha buyurtmalarda band qilingan.` };
+      return { error: `${combo} sonini ${n} dan kam qoʻyib boʻlmaydi — shuncha dona buyurtmalarda band.` };
     }
-    console.error("[admin] saveProduct", e);
-    return { error: "Mahsulotni saqlab boʻlmadi." };
+    console.error("[admin] saveProductEditor", e);
+    return { error: "Mahsulotni saqlab boʻlmadi. Qayta urinib koʻring." };
   }
+  for (const k of removedKeys) await deleteStoredImage(k);
 
   revalidatePath("/", "layout");
-  redirect(`/admin/products/${productId}?saved=1`);
+  redirect("/admin/products?saved=1");
+}
+
+export async function toggleProductVisibilityAction(form: FormData) {
+  await requireAdmin("products:write");
+  const id = String(form.get("id") ?? "");
+  const p = await prisma.product.findUnique({ where: { id }, select: { status: true, publishedAt: true, _count: { select: { images: true, variants: true } } } });
+  if (!p) return;
+  const toActive = p.status !== "ACTIVE";
+  if (toActive && (p._count.images === 0 || p._count.variants === 0)) redirect(`/admin/products/${id}?need=1`);
+  await prisma.product.update({ where: { id }, data: { status: toActive ? "ACTIVE" : "DRAFT", publishedAt: toActive ? p.publishedAt ?? new Date() : p.publishedAt } });
+  revalidatePath("/", "layout");
 }
 
 export async function deleteProductAction(form: FormData) {
@@ -190,53 +230,4 @@ export async function deleteProductAction(form: FormData) {
   await prisma.auditLog.create({ data: { actorId: admin.id, action: inOrders ? "product.archive" : "product.delete", entity: "Product", entityId: id } });
   revalidatePath("/", "layout");
   redirect("/admin/products");
-}
-
-export async function uploadImagesAction(_prev: FormState, form: FormData): Promise<FormState> {
-  await requireAdmin("products:write");
-  const productId = String(form.get("productId") ?? "");
-  const colorId = String(form.get("colorId") ?? "") || null;
-  const files = form.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
-  if (!files.length) return { error: "Fayllarni tanlang." };
-  if (files.length > 12) return { error: "Bir martada 12 tadan koʻp boʻlmagan fayl." };
-  const product = await prisma.product.findUnique({ where: { id: productId }, select: { id: true, _count: { select: { images: true } } } });
-  if (!product) return { error: "Mahsulot topilmadi." };
-
-  let order = product._count.images;
-  const failed: string[] = [];
-  for (const f of files) {
-    try {
-      const stored = await storeImage(f);
-      await prisma.productImage.create({ data: { productId, colorId, storageKey: stored.storageKey, width: stored.width, height: stored.height, sortOrder: order++ } });
-    } catch (e) {
-      const code = e instanceof UploadError ? e.code : "ERROR";
-      failed.push(`${f.name} (${{ TOO_LARGE: "12 MB dan katta", NOT_IMAGE: "rasm emas", UNSUPPORTED: "format qoʻllab-quvvatlanmaydi", EMPTY: "boʻsh fayl" }[code as UploadError["code"]] ?? "xato"})`);
-    }
-  }
-  revalidatePath("/", "layout");
-  return failed.length ? { error: `Yuklanmadi: ${failed.join(", ")}` } : { ok: `Yuklangan rasmlar: ${files.length}` };
-}
-
-export async function updateImageAction(form: FormData) {
-  await requireAdmin("products:write");
-  const id = String(form.get("id") ?? "");
-  const productId = String(form.get("productId") ?? "");
-  const colorId = String(form.get("colorId") ?? "") || null;
-  const sortOrder = Number(form.get("sortOrder") ?? 0);
-  await prisma.productImage.updateMany({ where: { id, productId }, data: { colorId, sortOrder: Number.isFinite(sortOrder) ? Math.max(0, Math.min(999, Math.round(sortOrder))) : 0 } });
-  revalidatePath("/", "layout");
-  redirect(`/admin/products/${productId}#images`);
-}
-
-export async function deleteImageAction(form: FormData) {
-  await requireAdmin("products:write");
-  const id = String(form.get("id") ?? "");
-  const productId = String(form.get("productId") ?? "");
-  const img = await prisma.productImage.findFirst({ where: { id, productId } });
-  if (img) {
-    await prisma.productImage.delete({ where: { id } });
-    await deleteStoredImage(img.storageKey);
-  }
-  revalidatePath("/", "layout");
-  redirect(`/admin/products/${productId}#images`);
 }

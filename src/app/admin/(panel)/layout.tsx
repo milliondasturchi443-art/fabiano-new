@@ -1,41 +1,36 @@
-import Image from "next/image";
-import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/features/admin/guard";
 import { adminLogoutAction } from "@/features/admin/auth-actions";
 import { AdminNav } from "./AdminNav";
-import logoCream from "../../../../public/brand/logo-cream.png";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPanelLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAdmin();
+  const [me, newOrders, newLeads] = await Promise.all([
+    prisma.user.findUnique({ where: { id: user.id }, select: { firstName: true, email: true } }),
+    prisma.order.count({ where: { status: "PENDING" } }),
+    prisma.lead.count({ where: { status: "NEW" } }),
+  ]);
+  const name = me?.firstName || me?.email?.split("@")[0] || "Admin";
   return (
-    <div className="min-h-svh lg:grid lg:grid-cols-[15rem_1fr]">
-      <aside className="border-r border-line bg-paper text-ink lg:sticky lg:top-0 lg:flex lg:h-svh lg:flex-col">
-        <div className="flex items-center justify-between px-5 py-4 lg:block lg:px-6 lg:py-7">
-          <Link href="/admin" aria-label="Umumiy koʻrinish">
-            <Image src={logoCream} alt="FABIANO" priority className="h-10 w-auto lg:h-14" />
-          </Link>
-          <p className="eyebrow hidden pt-2 text-[0.625rem] text-champagne lg:block">Admin</p>
+    <div className="adm">
+      <aside className="adm-side">
+        <a href="/admin/orders" className="brand" aria-label="Boshqaruv paneli">
+          <span className="logo-script">Fabiano</span>
+          <small>BOSHQARUV PANELI</small>
+        </a>
+        <div className="who">
+          <div className="av">{name.slice(0, 1).toUpperCase()}</div>
+          <div><b>{name}</b><span>ADMIN</span></div>
         </div>
-        <AdminNav />
-        <div className="hidden border-t border-white/10 px-6 py-5 text-xs lg:block">
-          <p className="truncate text-cream/60">{user.email}</p>
-          <div className="mt-3 flex items-center justify-between">
-            <a href="/uz" target="_blank" rel="noopener" className="link-underline">Saytni ochish ↗</a>
-            <form action={adminLogoutAction}>
-              <button type="submit" className="link-underline">Chiqish</button>
-            </form>
-          </div>
+        <AdminNav counts={{ orders: newOrders, leads: newLeads }} />
+        <div className="foot">
+          <form action={adminLogoutAction}><button type="submit" className="lnk-btn">Chiqish</button></form>
+          <a href="/uz" target="_blank" rel="noopener" className="lnk-btn">← Saytga qaytish</a>
         </div>
       </aside>
-      <div className="min-w-0">
-        <div className="flex items-center justify-end gap-5 border-b border-line bg-paper px-5 py-2 text-xs lg:hidden">
-          <a href="/uz" target="_blank" rel="noopener" className="link-underline">Sayt ↗</a>
-          <form action={adminLogoutAction}><button type="submit" className="link-underline">Chiqish</button></form>
-        </div>
-        <main className="px-5 py-8 md:px-10 md:py-10">{children}</main>
-      </div>
+      <main className="adm-main">{children}</main>
     </div>
   );
 }

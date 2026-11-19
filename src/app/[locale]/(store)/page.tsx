@@ -7,6 +7,7 @@ import { CategoryBoxes } from "@/components/home/CategoryBoxes";
 import { AboutSection } from "@/components/home/AboutSection";
 import { LeadForm } from "@/components/lead/LeadForm";
 import { getActiveHero, getGenderCategoryNames, getGenderCovers, getNewArrivals, getStoreSettings } from "@/services/catalog";
+import { siteTexts } from "@/lib/site-content";
 import { assertLocale, type AppLocale } from "@/i18n/routing";
 
 // ISR: главная пересобирается раз в 5 минут; изменения из админки сбрасывают кэш через revalidatePath.
@@ -25,17 +26,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
     getNewArrivals(locale, 16),
     getStoreSettings().catch(() => null),
   ]);
-  const content = (settings?.homeContent ?? {}) as { about?: Partial<Record<AppLocale, string>> };
+  const texts = siteTexts(settings?.homeContent, locale);
 
   return (
     <>
       <SiteHeader />
       <main id="main">
-        <Hero data={hero} covers={covers} />
+        <Hero data={hero} covers={covers} texts={texts} />
 
         <section className="py-16 md:py-[100px]">
           <div className="page-x mx-auto max-w-[var(--container-page)]">
-            <SectionHead eyebrow="FABIANO" title={t("newArrivals")} />
+            <SectionHead eyebrow="FABIANO" title={texts.newTitle || t("newArrivals")} />
             {products.length > 0 ? (
               <NewArrivals products={products} />
             ) : (
@@ -49,11 +50,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: A
         </section>
 
         <CategoryBoxes covers={covers} names={names} />
-        <AboutSection text={content.about?.[locale]} />
+        <AboutSection text={texts.aboutText} title={texts.aboutTitle} />
 
         <section className="py-16 md:py-[100px]">
           <div className="page-x mx-auto max-w-[var(--container-page)]">
-            <LeadForm page="home" />
+            <LeadForm page="home" title={texts.leadTitle} text={texts.leadText} />
           </div>
         </section>
       </main>

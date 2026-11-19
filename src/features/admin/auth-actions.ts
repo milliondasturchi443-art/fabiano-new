@@ -15,7 +15,7 @@ export async function adminLoginAction(_prev: FormState, form: FormData): Promis
   const parsed = z
     .object({ email: z.string().trim().toLowerCase().email().max(254), password: z.string().min(1).max(200) })
     .safeParse({ email: form.get("email"), password: form.get("password") });
-  if (!parsed.success) return { error: "Email va parolni kiriting." };
+  if (!parsed.success) return { error: "Login va parolni kiriting." };
 
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (!rateLimit(`admin-login:${ip}`, 8, 900).ok || !rateLimit(`admin-login:${parsed.data.email}`, 5, 900).ok) {
@@ -29,12 +29,12 @@ export async function adminLoginAction(_prev: FormState, form: FormData): Promis
   const ok = await verifyPassword(user?.passwordHash, parsed.data.password);
   const perms = new Set(user?.roles.flatMap((r) => r.role.permissions) ?? []);
   if (!user || !ok || !user.isActive || !(perms.has("*") || perms.has("admin:access"))) {
-    return { error: "Email yoki parol notoʻgʻri." };
+    return { error: "Login yoki parol notoʻgʻri." };
   }
 
   await createSession(user.id);
   await prisma.auditLog.create({ data: { actorId: user.id, action: "admin.login", entity: "User", entityId: user.id, ipAddress: ip } });
-  redirect("/admin");
+  redirect("/admin/orders");
 }
 
 export async function adminLogoutAction() {

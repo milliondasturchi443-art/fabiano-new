@@ -1,115 +1,92 @@
-import Image from "next/image";
 import Link from "next/link";
-import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/money";
 import { mediaUrl } from "@/lib/media";
 import { requireAdmin } from "@/features/admin/guard";
+import { deleteProductAction, toggleProductVisibilityAction } from "@/features/admin/product-actions";
+import { ConfirmButton } from "@/components/admin/ui";
 
 export const metadata = { title: "Mahsulotlar" };
 
-const STATUS: Record<string, { label: string; cls: string }> = {
-  ACTIVE: { label: "Chop etilgan", cls: "bg-success/10 text-success" },
-  DRAFT: { label: "Qoralama", cls: "bg-line text-muted" },
-  ARCHIVED: { label: "Arxivda", cls: "bg-danger/10 text-danger" },
-};
-
-export default async function AdminProducts({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; page?: string }> }) {
+export default async function AdminProducts({ searchParams }: { searchParams: Promise<{ q?: string; saved?: string }> }) {
   await requireAdmin("products:read");
-  const { q = "", status = "", page = "1" } = await searchParams;
-  const take = 30;
-  const current = Math.max(1, Number(page) || 1);
-  const where: Prisma.ProductWhereInput = {
-    ...(["ACTIVE", "DRAFT", "ARCHIVED"].includes(status) ? { status: status as "ACTIVE" } : {}),
-    ...(q.trim()
-      ? { OR: [{ sku: { contains: q.trim(), mode: "insensitive" } }, { translations: { some: { name: { contains: q.trim(), mode: "insensitive" } } } }] }
-      : {}),
-  };
-  const [total, rows] = await Promise.all([
-    prisma.product.count({ where }),
-    prisma.product.findMany({
-      where,
-      orderBy: { updatedAt: "desc" },
-      skip: (current - 1) * take,
-      take,
-      include: {
-        translations: { where: { locale: "uz" }, select: { name: true } },
-        images: { orderBy: { sortOrder: "asc" }, take: 1, select: { storageKey: true } },
-        category: { include: { translations: { where: { locale: "uz" }, select: { name: true } } } },
-        variants: { where: { isActive: true }, select: { inventory: { select: { quantity: true, reserved: true } } } },
-      },
-    }),
-  ]);
-  const pages = Math.max(1, Math.ceil(total / take));
+  const { q = "", saved } = await searchParams;
+  const rows = await prisma.product.findMany({
+    where: {
+      status: { not: "ARCHIVED" },
+      ...(q.trim() ? { OR: [{ sku: { contains: q.trim(), mode: "insensitive" } }, { translations: { some: { name: { contains: q.trim(), mode: "insensitive" } } } }] } : {}),
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 300,
+    include: {
+      translations: { where: { locale: "uz" }, select: { name: true } },
+      images: { orderBy: { sortOrder: "asc" }, take: 1, select: { storageKey: true } },
+      category: { include: { translations: { where: { locale: "uz" }, select: { name: true } } } },
+      variants: { where: { isActive: true }, select: { inventory: { select: { quantity: true } } } },
+    },
+  });
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-4xl md:text-5xl">Mahsulotlar <span className="price align-top font-sans text-base text-muted">{total}</span></h1>
-        <Link href="/admin/products/new" className="btn btn-primary">Mahsulot qoʻshish</Link>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 14, flexWrap: "wrap" }}>
+        <div>
+          <h2 className="h">Mahsulotlar</h2>
+          <p className="sub">Saytdagi barcha mahsulotlarni shu yerdan qoʻshasiz va tahrirlaysiz.</p>
+        </div>
+        <Link href="/admin/products/new" className="btn btn-primary btn-sm">+ Yangi mahsulot</Link>
       </div>
+      {saved ? <div className="anote ok" role="status">✓ Saqlandi — oʻzgarishlar saytda darhol koʻrinadi.</div> : <div className="anote ok">✓ Onlayn baza ulangan — oʻzgarishlar barcha mijozlarga koʻrinadi.</div>}
 
-      <form className="mt-8 flex flex-wrap gap-3" method="get">
-        <input name="q" defaultValue={q} placeholder="Nomi yoki artikul" className="field field-sm min-w-0 flex-1" />
-        <select name="status" defaultValue={status} className="field field-sm w-auto">
-          <option value="">Barcha holatlar</option>
-          <option value="ACTIVE">Chop etilganlar</option>
-          <option value="DRAFT">Qoralamalar</option>
-          <option value="ARCHIVED">Arxiv</option>
-        </select>
-        <button className="btn btn-outline btn-sm h-11">Qidirish</button>
-      </form>
-
-      {rows.length === 0 ? (
-        <div className="mt-8 card p-10 text-center">
-          <p className="text-muted">{q || status ? "Hech narsa topilmadi." : "Hozircha mahsulotlar yoʻq. Birinchi mahsulotni qoʻshing — chop etilgach, u darhol katalogda paydo boʻladi."}</p>
-          {!q && !status && <Link href="/admin/products/new" className="btn btn-primary mt-6">Mahsulot qoʻshish</Link>}
+      <div className="panel">
+        <div className="panel-h">
+          <h4>Jami: {rows.length}</h4>
+          <form method="get" style={{ display: "flex", gap: 8 }}>
+            <input name="q" defaultValue={q} className="inp inp-sm" style={{ width: 220 }} placeholder="Nomi yoki artikul" />
+            <button className="mb">Qidirish</button>
+          </form>
         </div>
-      ) : (
-        <div className="mt-6 card overflow-x-auto">
-          <table className="w-full min-w-[46rem] text-left text-sm">
-            <thead className="border-b border-line bg-canvas/70 text-[0.6875rem] uppercase tracking-wider text-muted">
-              <tr>
-                <th className="w-16 p-3" />
-                <th className="p-3 font-medium">Mahsulot</th>
-                <th className="p-3 font-medium">Toifa</th>
-                <th className="p-3 font-medium">Narx</th>
-                <th className="p-3 font-medium">Qoldiq</th>
-                <th className="p-3 font-medium">Holat</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {rows.map((p) => {
-                const img = mediaUrl(p.images[0]?.storageKey);
-                const stock = p.variants.reduce((s, v) => s + Math.max(0, (v.inventory?.quantity ?? 0) - (v.inventory?.reserved ?? 0)), 0);
-                return (
-                  <tr key={p.id} className="hover:bg-canvas">
-                    <td className="p-3">
-                      <div className="relative h-14 w-11 overflow-hidden bg-surface">{img && <Image src={img} alt="" fill sizes="44px" className="object-cover" />}</div>
-                    </td>
-                    <td className="p-3">
-                      <Link href={`/admin/products/${p.id}`} className="link-underline font-medium">{p.translations[0]?.name ?? "(nomsiz)"}</Link>
-                      <p className="text-xs text-muted">{p.sku}</p>
-                    </td>
-                    <td className="p-3 text-muted">{p.category.translations[0]?.name} · {p.gender === "MEN" ? "E" : p.gender === "WOMEN" ? "A" : "U"}</td>
-                    <td className="price p-3">{formatMoney(p.price.toString(), "uz")}</td>
-                    <td className={`price p-3 ${stock === 0 ? "text-danger" : ""}`}>{stock}</td>
-                    <td className="p-3"><span className={`pill ${STATUS[p.status]?.cls}`}>{STATUS[p.status]?.label}</span></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {pages > 1 && (
-        <nav className="mt-6 flex items-center justify-between text-sm">
-          {current > 1 ? <Link className="link-underline" href={`?q=${encodeURIComponent(q)}&status=${status}&page=${current - 1}`}>← Orqaga</Link> : <span />}
-          <span className="text-muted">{current} / {pages}</span>
-          {current < pages ? <Link className="link-underline" href={`?q=${encodeURIComponent(q)}&status=${status}&page=${current + 1}`}>Oldinga →</Link> : <span />}
-        </nav>
-      )}
+        {rows.length === 0 ? (
+          <div className="panel-b" style={{ textAlign: "center", padding: 50 }}>
+            <p style={{ color: "var(--mut)" }}>{q ? "Hech narsa topilmadi." : "Hali mahsulot yoʻq."}</p>
+            {!q && <Link href="/admin/products/new" className="btn btn-primary btn-sm" style={{ marginTop: 16 }}>Birinchi mahsulotni qoʻshish</Link>}
+          </div>
+        ) : rows.map((p) => {
+          const img = mediaUrl(p.images[0]?.storageKey);
+          const qty = p.variants.reduce((n, v) => n + (v.inventory?.quantity ?? 0), 0);
+          const on = p.status === "ACTIVE";
+          const off = p.compareAtPrice && Number(p.compareAtPrice) > Number(p.price) ? Math.round((1 - Number(p.price) / Number(p.compareAtPrice)) * 100) : 0;
+          return (
+            <div key={p.id} className={`prow ${on ? "" : "hid"}`}>
+              <Link href={`/admin/products/${p.id}`} className="im">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {img ? <img src={img} alt="" loading="lazy" /> : null}
+              </Link>
+              <div>
+                <Link href={`/admin/products/${p.id}`}><b>{p.translations[0]?.name ?? p.sku}</b></Link>
+                <div style={{ fontSize: 12, color: "var(--mut)" }}>
+                  {p.gender === "MEN" ? "Erkaklar" : p.gender === "WOMEN" ? "Ayollar" : "Uniseks"} · {p.category.translations[0]?.name ?? p.category.slug} · {qty} dona
+                </div>
+              </div>
+              <div>
+                <b style={{ color: "var(--g2)" }} className="price">{formatMoney(p.price.toString(), "uz")}</b>
+                {off > 0 && <div style={{ fontSize: 12, color: "var(--mut)" }}>−{off}%</div>}
+              </div>
+              <form action={toggleProductVisibilityAction} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
+                <input type="hidden" name="id" value={p.id} />
+                <button type="submit" className={`sw ${on ? "on" : ""}`} aria-label={on ? "Yashirish" : "Sotuvga chiqarish"} />
+                {on ? "Sotuvda" : "Yashirin"}
+              </form>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <Link href={`/admin/products/${p.id}`} className="mb">Tahrirlash</Link>
+                <form action={deleteProductAction}>
+                  <input type="hidden" name="id" value={p.id} />
+                  <ConfirmButton label="Oʻchirish" confirm="Mahsulotni oʻchirasizmi? Buyurtmalarda boʻlsa, arxivga oʻtadi." />
+                </form>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

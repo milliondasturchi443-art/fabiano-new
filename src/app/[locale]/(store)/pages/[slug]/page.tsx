@@ -5,6 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Breadcrumbs } from "@/components/catalog/Breadcrumbs";
 import { SimpleText } from "@/components/ui/SimpleText";
+import { LeadForm } from "@/components/lead/LeadForm";
+import { formatUzPhone } from "@/lib/phone";
+import { contactInfo, socialList } from "@/lib/site-content";
+import { getStoreSettings } from "@/services/catalog";
 import { assertLocale, locales, type AppLocale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: AppLocale; slug: string }> };
@@ -34,7 +38,18 @@ export default async function StaticPage({ params }: Props) {
   setRequestLocale(locale);
   const page = await getPage(slug, locale);
   if (!page) notFound();
-  const t = await getTranslations("catalog");
+  const [t, settings] = await Promise.all([getTranslations("catalog"), slug === "contact" ? getStoreSettings().catch(() => null) : null]);
+  const c = settings ? contactInfo(settings) : null;
+  const rows = c
+    ? ([
+        c.phone && ["Telefon", formatUzPhone(c.phone), `tel:${c.phone}`],
+        c.phone2 && ["Telefon", formatUzPhone(c.phone2), `tel:${c.phone2}`],
+        c.email && ["Email", c.email, `mailto:${c.email}`],
+        c.address && ["Manzil", c.address, null],
+        c.hours && ["Ish vaqti", c.hours, null],
+        ...socialList(settings?.socials).map((x) => [x.label, x.url.replace(/^https?:\/\//, ""), x.url]),
+      ].filter(Boolean) as [string, string, string | null][])
+    : [];
 
   return (
     <>
@@ -44,8 +59,19 @@ export default async function StaticPage({ params }: Props) {
         <article className="mx-auto max-w-2xl pb-8 pt-10 md:pt-16">
           <span className="block h-10 w-px bg-accent" aria-hidden />
           <h1 className="mt-6 text-5xl md:text-6xl">{page.title}</h1>
+          {rows.length > 0 && (
+            <dl className="mt-10 divide-y divide-line border-y border-line">
+              {rows.map(([k, v, href], i) => (
+                <div key={i} className="flex flex-wrap items-baseline justify-between gap-3 py-4">
+                  <dt className="eyebrow text-[0.62rem] text-gold">{k}</dt>
+                  <dd className="text-right">{href ? <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noopener" className="break-all text-champagne hover:underline">{v}</a> : v}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
           <SimpleText body={page.body} className="mt-10" />
         </article>
+        {slug === "contact" && <div className="pb-8"><LeadForm page="contact" /></div>}
       </main>
     </>
   );

@@ -1,3 +1,4 @@
+import { siteTexts } from "@/lib/site-content";
 import { getLocale } from "next-intl/server";
 import { Header } from "./Header";
 import { getStoreSettings } from "@/services/catalog";
@@ -19,14 +20,14 @@ export async function SiteHeader(_props: { overlay?: boolean; hideLogoWhileTrans
       .catch(() => []),
   ]);
   const enabled = (settings?.enabledLocales?.length ? settings.enabledLocales : locales) as readonly AppLocale[];
-  const home = (settings?.homeContent ?? {}) as { announce?: Partial<Record<AppLocale, string>> };
+  const texts = siteTexts(settings?.homeContent, locale);
   const toNav = (g: "MEN" | "WOMEN") => cats.filter((c) => c.gender === g).map((c) => ({ slug: c.slug, name: c.translations[0]?.name ?? c.slug }));
 
   return (
     <Header
       enabledLocales={enabled}
       categories={{ men: toNav("MEN"), women: toNav("WOMEN") }}
-      announcement={home.announce?.[locale]?.trim() || null}
+      announcement={texts.announce?.trim() || null}
     />
   );
 }

@@ -1,26 +1,15 @@
-import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatUzPhone } from "@/lib/phone";
+import { operatorOf } from "@/lib/validate-contact";
 import { requireAdmin } from "@/features/admin/guard";
 import { deleteLeadAction, toggleLeadAction } from "@/features/admin/store-actions";
-import { ConfirmButton } from "@/components/admin/ui";
+import { CopyButton } from "@/components/admin/CopyButton";
 
-export const metadata = { title: "Murojaatlar" };
+export const metadata = { title: "Raqam qoldirganlar" };
 
-export default async function AdminLeads({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+export default async function AdminLeads() {
   await requireAdmin("orders:read");
-  const { status = "NEW" } = await searchParams;
-  const filter = status === "DONE" ? "DONE" : status === "ALL" ? undefined : "NEW";
-  const [leads, counts] = await Promise.all([
-    prisma.lead.findMany({ where: filter ? { status: filter } : {}, orderBy: { createdAt: "desc" }, take: 200 }),
-    prisma.lead.groupBy({ by: ["status"], _count: true }),
-  ]);
-  const count = (s: "NEW" | "DONE") => counts.find((c) => c.status === s)?._count ?? 0;
-  const tabs = [
-    { k: "NEW", label: `Yangi (${count("NEW")})` },
-    { k: "DONE", label: `Bogʻlanildi (${count("DONE")})` },
-    { k: "ALL", label: "Hammasi" },
-  ];
+  const leads = await prisma.lead.findMany({ orderBy: { createdAt: "desc" }, take: 300 });
   const productIds = [...new Set(leads.map((l) => l.productId).filter((x): x is string => Boolean(x)))];
   const products = productIds.length
     ? await prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, sku: true, translations: { where: { locale: "uz" }, select: { name: true } } } })
@@ -29,55 +18,43 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
 
   return (
     <div>
-      <h1 className="text-4xl md:text-5xl">Murojaatlar</h1>
-      <p className="mt-3 max-w-2xl text-sm text-muted">Saytdagi «Raqamingizni qoldiring» formasidan kelgan soʻrovlar. Mijozga qoʻngʻiroq qilgach, «Bogʻlanildi» deb belgilang.</p>
-
-      <div className="mt-6 flex flex-wrap gap-2">
-        {tabs.map((t) => (
-          <Link key={t.k} href={`?status=${t.k}`} className={`h-[38px] content-center border px-4 font-caps text-[0.625rem] uppercase tracking-[0.2em] ${(status || "NEW") === t.k ? "border-gold bg-gold text-canvas" : "border-line text-muted hover:text-ink"}`}>
-            {t.label}
-          </Link>
-        ))}
-      </div>
-
-      {leads.length === 0 ? (
-        <p className="card mt-6 p-10 text-center text-muted">Bu boʻlimda murojaatlar yoʻq.</p>
-      ) : (
-        <div className="card mt-6 overflow-x-auto">
-          <table className="w-full min-w-[46rem] text-left text-sm">
-            <thead className="border-b border-line bg-canvas/70 text-[0.6875rem] uppercase tracking-wider text-muted">
-              <tr><th className="p-3 font-medium">Sana</th><th className="p-3 font-medium">Mijoz</th><th className="p-3 font-medium">Telefon</th><th className="p-3 font-medium">Savol</th><th className="p-3 font-medium">Holat</th><th className="p-3" /></tr>
-            </thead>
-            <tbody className="divide-y divide-hair">
-              {leads.map((l) => (
-                <tr key={l.id} className={l.status === "DONE" ? "opacity-60" : ""}>
-                  <td className="whitespace-nowrap p-3 text-muted">{l.createdAt.toLocaleString("uz-Latn-UZ", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Tashkent" })}</td>
-                  <td className="p-3">{l.firstName} {l.lastName}<p className="text-xs uppercase text-muted">{l.locale}</p></td>
-                  <td className="p-3"><a href={`tel:${l.phone}`} className="price link-underline whitespace-nowrap text-champagne">{formatUzPhone(l.phone)}</a></td>
-                  <td className="max-w-xs p-3 text-muted">
-                    {l.question || "—"}
-                    {l.productId && <p className="mt-1 text-xs"><Link href={`/admin/products/${l.productId}`} className="link-underline text-gold">{pName.get(l.productId) ?? "Mahsulot"}</Link></p>}
-                  </td>
-                  <td className="p-3">
-                    <form action={toggleLeadAction}>
-                      <input type="hidden" name="id" value={l.id} />
-                      <button className={`pill ${l.status === "NEW" ? "bg-[rgb(234_180_90/0.15)] text-[#f0c27a]" : "bg-success/10 text-success"}`} title="Almashtirish uchun bosing">
-                        {l.status === "NEW" ? "Yangi" : "Bogʻlanildi"}
-                      </button>
-                    </form>
-                  </td>
-                  <td className="p-3 text-right">
-                    <form action={deleteLeadAction}>
-                      <input type="hidden" name="id" value={l.id} />
-                      <ConfirmButton label="Oʻchirish" confirm="Murojaatni oʻchirasizmi?" />
-                    </form>
-                  </td>
-                </tr>
-              ))}
+      <h2 className="h">Raqam qoldirganlar</h2>
+      <p className="sub">«Raqamingizni qoldiring» formasi orqali kelgan soʻrovlar.</p>
+      <div className="anote ok">✓ Onlayn baza ulangan — yangi soʻrovlar shu yerda darhol paydo boʻladi.</div>
+      <div className="panel">
+        <div className="atw">
+          <table className="atbl">
+            <thead><tr><th>Sana</th><th>Ism familiya</th><th>Telefon</th><th>Operator</th><th>Savol</th><th>Holat</th><th></th></tr></thead>
+            <tbody>
+              {leads.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", padding: 46, color: "var(--mut)" }}>Hozircha raqam qoldirilmagan</td></tr>}
+              {leads.map((l) => {
+                const digits = l.phone.replace(/\D/g, "").slice(-9);
+                const done = l.status === "DONE";
+                return (
+                  <tr key={l.id}>
+                    <td style={{ whiteSpace: "nowrap" }}>{l.createdAt.toLocaleString("uz-Latn-UZ", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Tashkent" })}</td>
+                    <td><b>{l.firstName} {l.lastName}</b></td>
+                    <td className="pn"><a href={`tel:${l.phone}`}>{formatUzPhone(l.phone)}</a></td>
+                    <td>{operatorOf(digits) ?? ""}</td>
+                    <td style={{ fontSize: 13 }}>
+                      {l.question || "—"}
+                      {l.productId && pName.get(l.productId) && <div style={{ color: "var(--mut)" }}>{pName.get(l.productId)}</div>}
+                    </td>
+                    <td><span className={`st ${done ? "s3" : "s0"}`}>{done ? "Bogʻlanildi" : "Kutmoqda"}</span></td>
+                    <td style={{ whiteSpace: "nowrap" }}>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <CopyButton value={l.phone} />
+                        <form action={toggleLeadAction}><input type="hidden" name="id" value={l.id} /><button className={`mb ${done ? "" : "on"}`}>{done ? "Qaytarish" : "Bogʻlanildi"}</button></form>
+                        <form action={deleteLeadAction}><input type="hidden" name="id" value={l.id} /><button className="mb red" aria-label="Oʻchirish">✕</button></form>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }
