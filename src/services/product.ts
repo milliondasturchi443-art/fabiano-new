@@ -124,6 +124,6 @@ export async function getRelatedProducts(product: ProductDetail, locale: AppLoca
  */
 export async function isTryOnEnabledFor(product: ProductDetail): Promise<boolean> {
   if (!process.env.DECART_API_KEY || product.images.length === 0) return false;
-  const s = await prisma.storeSettings.findUnique({ where: { id: "default" }, select: { tryOnEnabled: true } });
-  return Boolean(s?.tryOnEnabled);
+  const s = await prisma.storeSettings.findUnique({ where: { id: "default" }, select: { tryOnEnabled: true, tryOnProvider: true } });
+  return Boolean(s?.tryOnEnabled) && s?.tryOnProvider === "decart";
 }

@@ -672,6 +672,7 @@ model StoreSettings {
   enabledLocales  Locale[] @default([uz, ru])
   homeContent     Json?    // тексты Brand Section и т.п. по локалям
   tryOnEnabled    Boolean  @default(false) // живая примерка Decart; работает только при заданном DECART_API_KEY
+  tryOnProvider   String   @default("anywear") // "anywear" — виджет Anywear (бесплатно в бете) | "decart" — своя кнопка на ключе Decart | "off"
   updatedAt       DateTime @updatedAt
 }
 

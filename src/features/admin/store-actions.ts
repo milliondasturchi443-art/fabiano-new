@@ -181,6 +181,16 @@ export async function togglePaymentAction(form: FormData) {
   revalidatePath("/admin/settings");
 }
 
+/** Какая примерка работает на сайте: Anywear (виджет), своя кнопка Decart или выключено. */
+export async function setTryOnProviderAction(form: FormData) {
+  await requireAdmin("*");
+  const v = String(form.get("provider") ?? "");
+  if (!["anywear", "decart", "off"].includes(v)) return;
+  await prisma.storeSettings.upsert({ where: { id: "default" }, create: { id: "default", tryOnProvider: v, tryOnEnabled: v === "decart" }, update: { tryOnProvider: v, tryOnEnabled: v === "decart" } });
+  revalidatePath("/admin/settings");
+  revalidatePath("/", "layout");
+}
+
 export async function toggleTryOnAction() {
   await requireAdmin("*");
   if (!process.env.DECART_API_KEY) return; // без ключа Decart включать нечего

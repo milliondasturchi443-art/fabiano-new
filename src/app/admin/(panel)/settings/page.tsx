@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { localized } from "@/services/catalog";
 import { requireAdmin } from "@/features/admin/guard";
 import { savePaymentDeliveryAction } from "@/features/admin/site-actions";
-import { toggleTryOnAction } from "@/features/admin/store-actions";
+import { setTryOnProviderAction } from "@/features/admin/store-actions";
 import { SaveForm } from "@/components/admin/ui";
 
 export const metadata = { title: "Toʻlov va yetkazish" };
@@ -79,21 +79,23 @@ export default async function AdminSettings() {
 
       <div className="panel" id="try-on" style={{ marginTop: 10 }}>
         <div className="panel-h"><h4>Jonli kiyib koʻrish</h4></div>
-        <div className="srow">
-          <div>
-            <b>Decart Lucy V-TON <span className={`st ${decartReady && s?.tryOnEnabled ? "s3" : "s0"}`} style={{ marginLeft: 6 }}>{!decartReady ? "kalit yoʻq" : s?.tryOnEnabled ? "yoqilgan" : "oʻchirilgan"}</span></b>
-            <span className="d">
-              {decartReady
-                ? "Xaridor mahsulot sahifasida kamerani yoqadi va kiyimni real vaqtda ustida koʻradi. Rasmi bor barcha mahsulotlarda ishlaydi. Har bir seans 90 soniyagacha, bir IP uchun soatiga 20 ta."
-                : "Ishlashi uchun platform.decart.ai’dan API kalit oling va Render → Environment’ga DECART_API_KEY sifatida qoʻshing."}
-            </span>
-          </div>
-          {decartReady && (
-            <form action={toggleTryOnAction}>
-              <button type="submit" className={`sw ${s?.tryOnEnabled ? "on" : ""}`} aria-label={s?.tryOnEnabled ? "Oʻchirish" : "Yoqish"} />
+        {([
+          { v: "anywear", t: "Anywear (tavsiya etiladi)", d: "Decart’ning tayyor vidjeti — Anywear kengaytmasidagi sifat. Mahsulot sahifasiga oʻzi tugma qoʻshadi. Beta davrida bepul, kalit kerak emas." },
+          { v: "decart", t: "Oʻz tugmamiz (Decart kaliti)", d: decartReady ? "Saytimiz dizaynidagi «Jonli kiyib koʻrish» tugmasi. Toʻlov — Decart kalitingizdan, soniyasiga ~$0.02. Seans 90 soniyagacha." : "Ishlashi uchun Render → Environment’ga DECART_API_KEY qoʻshing." },
+          { v: "off", t: "Oʻchirilgan", d: "Saytda kiyib koʻrish koʻrinmaydi." },
+        ] as const).map((o) => {
+          const active = (s?.tryOnProvider ?? "anywear") === o.v;
+          return (
+            <form key={o.v} action={setTryOnProviderAction} className="srow">
+              <input type="hidden" name="provider" value={o.v} />
+              <div>
+                <b>{o.t} {active && <span className="st s3" style={{ marginLeft: 6 }}>yoqilgan</span>}</b>
+                <span className="d">{o.d}</span>
+              </div>
+              <button type="submit" className={`sw ${active ? "on" : ""}`} disabled={!active && o.v === "decart" && !decartReady} aria-label={`${o.t} — yoqish`} />
             </form>
-          )}
-        </div>
+          );
+        })}
       </div>
     </div>
   );
