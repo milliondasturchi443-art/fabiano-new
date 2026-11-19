@@ -72,6 +72,16 @@ export function toCard(p: CardRow, locale: AppLocale): ProductCardData {
 
 const published = { status: "ACTIVE" } satisfies Prisma.ProductWhereInput;
 
+/** Срок доставки (из настроек курьера) и текст-примечание из «Sayt matnlari» — для карточки товара. */
+export async function getDeliveryInfo(locale: AppLocale): Promise<{ eta: string | null; note: string | null }> {
+  const [courier, settings] = await Promise.all([
+    prisma.deliveryMethod.findFirst({ where: { isEnabled: true }, orderBy: [{ type: "asc" }, { sortOrder: "asc" }], select: { etaDays: true } }),
+    getStoreSettings().catch(() => null),
+  ]);
+  const { siteTexts } = await import("@/lib/site-content");
+  return { eta: courier?.etaDays ?? null, note: siteTexts(settings?.homeContent, locale).deliveryNote ?? null };
+}
+
 /** Сначала товары с отметкой «Yangi», затем — просто последние опубликованные (главная не бывает пустой). */
 export async function getNewArrivals(locale: AppLocale, take = 8): Promise<ProductCardData[]> {
   const fresh = await prisma.product.findMany({

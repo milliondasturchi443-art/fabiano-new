@@ -142,7 +142,7 @@ export function CheckoutForm({
                   <span className="block text-sm font-medium">{d.name}</span>
                   {d.etaDays && <span className="block text-xs text-muted">{t("eta", { days: d.etaDays })}</span>}
                 </span>
-                <span className="price text-sm">{Number(d.price) === 0 ? t("free") : money(d.price)}</span>
+                <span className="price text-right text-sm">{Number(d.price) === 0 ? (d.type === "PICKUP" ? t("free") : t("priceOnRequest")) : money(d.price)}</span>
               </label>
             ))}
           </div>
@@ -184,7 +184,8 @@ export function CheckoutForm({
         <dl className="mt-6 space-y-2 border-t border-line pt-5 text-sm">
           <div className="flex justify-between"><dt className="text-muted">{tc("subtotal")}</dt><dd className="price">{money(cart.totals.subtotal)}</dd></div>
           {cart.totals.discount !== "0.00" && <div className="flex justify-between"><dt className="text-muted">{tc("discount")}</dt><dd className="price text-accent">−{money(cart.totals.discount)}</dd></div>}
-          <div className="flex justify-between"><dt className="text-muted">{tc("shipping")}</dt><dd className="price">{shipping === "0.00" ? t("free") : money(shipping)}</dd></div>
+          <div className="flex justify-between gap-3"><dt className="text-muted">{tc("shipping")}</dt><dd className="price text-right">{shipping !== "0.00" ? money(shipping) : delivery && Number(delivery.price) === 0 && delivery.type !== "PICKUP" ? t("priceOnRequest") : t("free")}</dd></div>
+          {delivery && Number(delivery.price) === 0 && delivery.type !== "PICKUP" && <p className="text-xs text-muted">{t("priceOnRequestHint")}</p>}
         </dl>
         <div className="mt-5 flex items-baseline justify-between border-t border-line pt-5">
           <span className="eyebrow">{tc("total")}</span>

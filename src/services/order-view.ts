@@ -20,7 +20,7 @@ async function loadOrder(number: string) {
     ...o,
     items: o.items.map((i) => ({ ...i, image: mediaUrl(i.imageKey) })),
     address: o.shippingAddress as { region?: string; district?: string; street?: string; house?: string; apartment?: string | null },
-    delivery: o.deliverySnapshot as { name?: string; type?: string; price?: string },
+    delivery: o.deliverySnapshot as { name?: string; type?: string; price?: string; basePrice?: string },
   };
 }
 

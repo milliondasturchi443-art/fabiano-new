@@ -34,7 +34,7 @@ export async function OrderDetails({ order, locale }: { order: OrderView; locale
           {Number(order.discountTotal) > 0 && (
             <div className="flex justify-between"><dt className="text-muted">{tc("discount")}{order.couponCode ? ` (${order.couponCode})` : ""}</dt><dd className="price text-accent">−{money(order.discountTotal)}</dd></div>
           )}
-          <div className="flex justify-between"><dt className="text-muted">{tc("shipping")}</dt><dd className="price">{Number(order.shippingTotal) === 0 ? tk("free") : money(order.shippingTotal)}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">{tc("shipping")}</dt><dd className="price">{Number(order.shippingTotal) > 0 ? money(order.shippingTotal) : Number(order.delivery.basePrice ?? order.delivery.price ?? 0) > 0 || order.delivery.type === "PICKUP" ? tk("free") : tk("priceOnRequest")}</dd></div>
           <div className="flex justify-between border-t border-line pt-3 text-base"><dt>{tc("total")}</dt><dd className="price">{money(order.grandTotal)}</dd></div>
         </dl>
       </section>

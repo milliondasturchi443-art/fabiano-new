@@ -111,7 +111,8 @@
         "unsupported": "Bu brauzer jonli kiyib koʻrishni qoʻllab-quvvatlamaydi. Chrome yoki Safari’ning yangi versiyasini oching.",
         "generic": "Ulanib boʻlmadi. Internetni tekshirib, qayta urinib koʻring."
       }
-    }
+    },
+    "deliveryNote": "Mahsulotlar buyurtma asosida Xitoydan keltiriladi. Taxminiy yetkazib berish muddati — {days} kun. Aniq kunni buyurtmadan keyin xabar qilamiz."
   },
   "newsletter": {
     "title": "Yangiliklardan birinchi boʻlib xabardor boʻling",
@@ -361,7 +362,9 @@
     "paymentOnDelivery": "Toʻlov buyurtmani qabul qilganda amalga oshiriladi.",
     "continue": "Xaridni davom ettirish",
     "viewInAccount": "Hisobimda koʻrish",
-    "guestNote": "Bu sahifa havolasini saqlab qoʻying — u orqali buyurtmangizni koʻrishingiz mumkin."
+    "guestNote": "Bu sahifa havolasini saqlab qoʻying — u orqali buyurtmangizni koʻrishingiz mumkin.",
+    "priceOnRequest": "Kelishiladi",
+    "priceOnRequestHint": "Yetkazib berish narxini operator aytadi"
   },
   "lead": {
     "eyebrow": "Bogʻlanish",
@@ -426,6 +429,8 @@
       "SHIPPED": "Yoʻlda",
       "DELIVERED": "Yetkazildi"
     },
-    "opening": "Buyurtma qabul qilindi — chek ochilmoqda…"
+    "opening": "Buyurtma qabul qilindi — chek ochilmoqda…",
+    "eta": "Taxminiy muddat",
+    "shippingTbd": "Kelishiladi"
   }
 }

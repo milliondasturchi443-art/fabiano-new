@@ -128,6 +128,7 @@ export async function saveProductEditorAction(_prev: ProductEditorState, form: F
   try {
     await prisma.$transaction(async (tx) => {
       const data = {
+        tryOnPrompt: txt("tryOnPrompt", 600) || null,
         sku,
         slug,
         gender: d.gender,
@@ -177,12 +178,14 @@ export async function saveProductEditorAction(_prev: ProductEditorState, form: F
       const removed = oldImages.filter((i) => !keepOld.has(i.id));
       if (removed.length) await tx.productImage.deleteMany({ where: { id: { in: removed.map((i) => i.id) } } });
       removedKeys = removed.map((i) => i.storageKey);
+      const tryOnRef = String(form.get("tryOnImage") ?? "");
       for (const [pos, ref] of order.entries()) {
+        const isTryOnAsset = ref === tryOnRef;
         if (ref.startsWith("old:")) {
-          await tx.productImage.updateMany({ where: { id: ref.slice(4), productId: p.id }, data: { sortOrder: pos } });
+          await tx.productImage.updateMany({ where: { id: ref.slice(4), productId: p.id }, data: { sortOrder: pos, isTryOnAsset } });
         } else {
           const s = stored[Number(ref.slice(4))];
-          if (s) await tx.productImage.create({ data: { productId: p.id, storageKey: s.storageKey, width: s.width, height: s.height, sortOrder: pos } });
+          if (s) await tx.productImage.create({ data: { productId: p.id, storageKey: s.storageKey, width: s.width, height: s.height, sortOrder: pos, isTryOnAsset } });
         }
       }
 

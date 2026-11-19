@@ -35,9 +35,23 @@ export function validateUzMobile(digits: string): PhoneError | null {
   const op = digits.slice(0, 2);
   const sub = digits.slice(2);
   if (!UZ_MOBILE_OPERATORS[op]) return "PHONE_OPERATOR";
-  if (/^(\d)\1{6}$/.test(sub) || new Set(sub).size < 3 || /(\d)\1{4,}/.test(sub)) return "PHONE_FAKE";
-  if ("0123456789".includes(sub) || "9876543210".includes(sub)) return "PHONE_FAKE";
+  if (/^(\d)\1{6}$/.test(sub) || new Set(sub).size < 3 || /(\d)\1{3,}/.test(sub)) return "PHONE_FAKE"; // 4+ одинаковых подряд
+  if (hasRun(sub, 5)) return "PHONE_FAKE"; // 12345, 98765 внутри номера
+  if (/^(\d\d)\1{2}/.test(sub) || /(\d\d)\1\1\d?$/.test(sub)) return "PHONE_FAKE"; // 121212…
+  if (/^(\d)(\d)\2\1(\d)\3\d?$/.test(sub) && new Set(sub).size <= 3) return "PHONE_FAKE"; // 1221331-подобные
   return null;
+}
+
+/** Есть ли подряд n цифр по возрастанию или убыванию (0123…, 9876…). */
+function hasRun(s: string, n: number): boolean {
+  let up = 1, down = 1;
+  for (let i = 1; i < s.length; i++) {
+    const d = s.charCodeAt(i) - s.charCodeAt(i - 1);
+    up = d === 1 ? up + 1 : 1;
+    down = d === -1 ? down + 1 : 1;
+    if (up >= n || down >= n) return true;
+  }
+  return false;
 }
 
 export function operatorOf(digits: string): string | null {

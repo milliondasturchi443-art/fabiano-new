@@ -32,6 +32,8 @@ export interface ProductDetail {
   colors: ColorOption[];
   variants: VariantOption[];
   images: GalleryImage[];
+  /** Для живой примерки: отмеченное админом фото (или первое) и описание вещи. */
+  tryOnAsset: { url: string | null; prompt: string | null };
   sizeGuide: { name: string; table: SizeGuideTable } | null;
   tryOnEnabled: boolean;
   rating: { average: number; count: number } | null;
@@ -92,6 +94,10 @@ export const getProductBySlug = cache(async (slug: string, locale: AppLocale): P
       available: v.inventory ? Math.max(0, v.inventory.quantity - v.inventory.reserved) : 0,
       price: (v.priceOverride ?? p.price).toString(),
     })),
+    tryOnAsset: {
+      url: mediaUrl((p.images.find((i) => i.isTryOnAsset) ?? p.images[0])?.storageKey),
+      prompt: p.tryOnPrompt?.trim() || null,
+    },
     images: p.images.flatMap((i) => {
       const url = mediaUrl(i.storageKey);
       return url ? [{ url, width: i.width, height: i.height, alt: localized(i.alt, locale) || name, colorCode: i.color?.code ?? null }] : [];

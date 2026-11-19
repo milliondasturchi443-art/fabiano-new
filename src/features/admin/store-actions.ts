@@ -58,6 +58,25 @@ export async function setDeliveryDateAction(form: FormData) {
   revalidatePath("/admin", "layout");
 }
 
+/** Цена доставки по договорённости: админ вписывает её в заказ — меняется итог в чеке и сумма к оплате. */
+export async function setOrderShippingAction(form: FormData) {
+  const admin = await requireAdmin("orders:write");
+  const id = String(form.get("id") ?? "");
+  const raw = String(form.get("shipping") ?? "").replace(/\s/g, "");
+  if (!/^\d{1,9}$/.test(raw)) return;
+  const o = await prisma.order.findUnique({ where: { id }, select: { status: true, subtotal: true, discountTotal: true, deliverySnapshot: true } });
+  if (!o || ["DELIVERED", "CANCELLED", "REFUNDED"].includes(o.status)) return;
+  const shipping = Number(raw);
+  const grand = Math.max(0, Number(o.subtotal) - Number(o.discountTotal) + shipping);
+  const snap = (o.deliverySnapshot ?? {}) as Record<string, unknown>;
+  await prisma.$transaction([
+    prisma.order.update({ where: { id }, data: { shippingTotal: String(shipping), grandTotal: String(grand), deliverySnapshot: { ...snap, price: String(shipping) } } }),
+    prisma.payment.updateMany({ where: { orderId: id, status: "PENDING" }, data: { amount: String(grand) } }),
+    prisma.auditLog.create({ data: { actorId: admin.id, action: "order.shipping_price", entity: "Order", entityId: id, diff: { shipping } } }),
+  ]);
+  revalidatePath("/admin", "layout");
+}
+
 // ── Промокоды ───────────────────────────────────────
 
 const couponSchema = z.object({

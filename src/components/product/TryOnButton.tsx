@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { fetchTryOnToken, isTryOnSupported, TRY_ON_MAX_SECONDS, TRY_ON_MODEL } from "@/features/virtual-try-on/adapter";
 import { tryOnPrompt } from "@/features/virtual-try-on/prompt";
+import { openFittedCamera, type FittedCamera } from "@/features/virtual-try-on/camera";
 import { reportClientError } from "@/lib/client-error";
 
 /** Минимальный контракт @decartai/sdk, который мы используем (см. docs.platform.decart.ai). */
@@ -30,9 +31,10 @@ interface Props {
   imageUrl: string;
   categorySlug: string;
   colorCode: string | null;
+  customPrompt?: string | null;
 }
 
-export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: Props) {
+export function TryOnButton({ productName, imageUrl, categorySlug, colorCode, customPrompt }: Props) {
   const t = useTranslations("product");
   const [phase, setPhase] = useState<Phase>("closed");
   const [err, setErr] = useState<ErrKey>("generic");
@@ -40,7 +42,8 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
   const [left, setLeft] = useState(TRY_ON_MAX_SECONDS);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const camRef = useRef<FittedCamera | null>(null);
+  const [frame, setFrame] = useState({ w: 3, h: 4 });
   const sessionRef = useRef<RealtimeSession | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const runRef = useRef(0); // отменяет устаревший запуск, если окно закрыли во время подключения
@@ -61,8 +64,9 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.drawImage(bmp, 0, 0, c.width, c.height);
     const image = await new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("IMAGE_ENCODE"))), "image/jpeg", 0.9));
-    return { prompt: tryOnPrompt(categorySlug, colorCode), image, enhance: false };
-  }, [imageUrl, categorySlug, colorCode]);
+    // Своё описание от админа отправляем как есть; автоматическое — Decart дополнительно уточняет (enhance)
+    return { prompt: tryOnPrompt(categorySlug, colorCode, customPrompt), image, enhance: !customPrompt };
+  }, [imageUrl, categorySlug, colorCode, customPrompt]);
 
   const stop = useCallback(async () => {
     runRef.current++;
@@ -71,8 +75,8 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
     const s = sessionRef.current;
     sessionRef.current = null;
     try { await s?.disconnect(); } catch { /* сессия уже закрыта */ }
-    streamRef.current?.getTracks().forEach((tr) => tr.stop());
-    streamRef.current = null;
+    camRef.current?.stop();
+    camRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
@@ -89,12 +93,14 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
     try {
       const sdk = (await import("@decartai/sdk")) as unknown as DecartSdk;
       const model = sdk.models.realtime(TRY_ON_MODEL);
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: "user" } });
-      if (run !== runRef.current) { stream.getTracks().forEach((tr) => tr.stop()); return; }
-      streamRef.current = stream;
+      const cam = await openFittedCamera();
+      if (run !== runRef.current) { cam.stop(); return; }
+      camRef.current = cam;
+      setFrame({ w: cam.width, h: cam.height });
+      const stream = cam.stream;
 
       const apiKey = await fetchTryOnToken();
-      if (run !== runRef.current) { stream.getTracks().forEach((tr) => tr.stop()); return; }
+      if (run !== runRef.current) return;
       const client = sdk.createDecartClient({ apiKey });
       const session = await client.realtime.connect(stream, {
         model,
@@ -176,7 +182,7 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
 
       {phase !== "closed" && (
         <div role="dialog" aria-modal="true" aria-label={t("tryOn")} className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 p-0 backdrop-blur-sm sm:p-6">
-          <div className="relative flex h-full w-full max-w-[520px] flex-col overflow-hidden border-gold/30 bg-canvas sm:h-auto sm:max-h-[92vh] sm:border">
+          <div className={`relative flex h-full w-full flex-col ${phase === "live" && frame.w > frame.h ? "max-w-[880px]" : "max-w-[520px]"} overflow-hidden border-gold/30 bg-canvas sm:h-auto sm:max-h-[92vh] sm:border`}>
             <div className="flex items-center justify-between border-b border-line px-5 py-3">
               <div className="min-w-0">
                 <p className="caps text-[0.62rem] text-gold">{t("tryOn")}</p>
@@ -187,8 +193,9 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
               </button>
             </div>
 
-            <div className="relative flex-1 bg-black sm:aspect-[3/4] sm:flex-none">
-              <video ref={videoRef} playsInline muted autoPlay className={`h-full w-full object-cover ${phase === "live" ? "opacity-100" : "opacity-0"}`} />
+            <div className="relative min-h-0 flex-1 bg-black sm:flex-none sm:[aspect-ratio:var(--ar)]" style={{ "--ar": phase === "live" ? `${frame.w} / ${frame.h}` : "3 / 4" } as React.CSSProperties}>
+              {/* object-contain: кадр модели показываем целиком, без растягивания; зеркально — как в зеркале */}
+              <video ref={videoRef} playsInline muted autoPlay className={`h-full w-full -scale-x-100 object-contain ${phase === "live" ? "opacity-100" : "opacity-0"}`} />
 
               {phase === "live" && (
                 <div className="absolute left-3 top-3 flex items-center gap-2 bg-black/60 px-3 py-1.5 text-xs text-champagne">

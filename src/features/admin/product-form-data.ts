@@ -30,6 +30,8 @@ export interface EditorProduct {
   stock: Record<string, number>; // `${colorId}:${sizeId}` → кол-во
   reserved: Record<string, number>;
   images: { id: string; url: string }[];
+  tryOnImageId: string | null;
+  tryOnPrompt: string;
 }
 
 export async function loadEditorOptions(): Promise<EditorOptions> {
@@ -64,6 +66,8 @@ export const emptyEditorProduct: EditorProduct = {
   stock: {},
   reserved: {},
   images: [],
+  tryOnImageId: null,
+  tryOnPrompt: "",
 };
 
 export async function loadEditorProduct(id: string): Promise<EditorProduct | null> {
@@ -105,5 +109,7 @@ export async function loadEditorProduct(id: string): Promise<EditorProduct | nul
       const url = mediaUrl(i.storageKey);
       return url ? [{ id: i.id, url }] : [];
     }),
+    tryOnImageId: p.images.find((i) => i.isTryOnAsset)?.id ?? null,
+    tryOnPrompt: p.tryOnPrompt ?? "",
   };
 }

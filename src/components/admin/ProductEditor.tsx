@@ -46,6 +46,9 @@ export function ProductEditor({ data, options }: { data: EditorProduct; options:
   const [price, setPrice] = useState(data.price);
   const [disc, setDisc] = useState(data.disc);
   const errRef = useRef<HTMLDivElement>(null);
+  // Фото для живой примерки: ключ old:<id> или new:<key>; по умолчанию — первое
+  const [tryOnKey, setTryOnKey] = useState<string | null>(data.tryOnImageId ? `old:${data.tryOnImageId}` : null);
+  const keyOf = (i: Img) => (i.kind === "old" ? `old:${i.id}` : `new:${i.key}`);
 
   useEffect(() => () => imgs.forEach((i) => i.kind === "new" && URL.revokeObjectURL(i.url)), []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (state?.error) errRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }, [state]);
@@ -87,11 +90,15 @@ export function ProductEditor({ data, options }: { data: EditorProduct; options:
     const fd = new FormData(e.currentTarget);
     const order: string[] = [];
     let n = 0;
+    let tryOnRef = "";
     for (const i of imgs) {
-      if (i.kind === "old") order.push(`old:${i.id}`);
-      else { fd.append("newImages", i.file, i.file.name); order.push(`new:${n++}`); }
+      const ref = i.kind === "old" ? `old:${i.id}` : `new:${n++}`;
+      if (i.kind === "new") fd.append("newImages", i.file, i.file.name);
+      order.push(ref);
+      if (tryOnKey && keyOf(i) === tryOnKey) tryOnRef = ref;
     }
     fd.set("imageOrder", JSON.stringify(order));
+    fd.set("tryOnImage", tryOnRef);
     const rows = selColors.flatMap((c) => sizes.flatMap((s) => {
       const v = stock[`${c.id}:${s.id}`];
       return v === undefined || v === "" ? [] : [{ colorId: c.id, sizeId: s.id, stock: Math.max(0, Math.floor(Number(v) || 0)) }];
@@ -115,6 +122,14 @@ export function ProductEditor({ data, options }: { data: EditorProduct; options:
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={im.url} alt="" />
                 <button type="button" className="x" aria-label="Rasmni olib tashlash" onClick={() => setImgs((cur) => cur.filter((_, k) => k !== i))}>✕</button>
+                <button
+                  type="button"
+                  title="Jonli kiyib koʻrish uchun shu rasm yuboriladi"
+                  onClick={() => setTryOnKey(tryOnKey === keyOf(im) ? null : keyOf(im))}
+                  style={{ position: "absolute", top: 4, left: 4, fontSize: 8.5, letterSpacing: ".1em", padding: "3px 5px", background: tryOnKey === keyOf(im) ? "var(--g)" : "rgb(0 0 0 / .7)", color: tryOnKey === keyOf(im) ? "var(--k)" : "var(--mut)", fontFamily: "var(--font-caps)" }}
+                >
+                  {tryOnKey === keyOf(im) ? "✓ KIYISH" : "KIYISH"}
+                </button>
                 {i === 0 ? <span className="main">ASOSIY</span> : (
                   <button type="button" className="main" onClick={() => setImgs((cur) => [cur[i]!, ...cur.filter((_, k) => k !== i)])}>ASOSIY QILISH</button>
                 )}
@@ -128,8 +143,13 @@ export function ProductEditor({ data, options }: { data: EditorProduct; options:
             )}
           </div>
           <p className="hint" style={{ fontSize: 12, marginTop: 10, color: "var(--mut)" }}>
-            Birinchi rasm asosiy boʻladi. Tik (portret) rasm eng chiroyli koʻrinadi. Oq fonda faqat kiyimning oʻzi tushgan rasm — jonli kiyib koʻrish uchun eng yaxshisi.
+            Birinchi rasm asosiy boʻladi. «KIYISH» — jonli kiyib koʻrishda qaysi rasm ishlatilishini belgilaydi (belgilanmasa — birinchisi). Buning uchun oq fonda faqat kiyimning oʻzi tushgan, odamsiz rasm eng yaxshi natija beradi.
           </p>
+          <div className="fld" style={{ marginTop: 16 }}>
+            <label htmlFor="pe-tryon">Kiyib koʻrish uchun tavsif (inglizcha, ixtiyoriy)</label>
+            <textarea id="pe-tryon" className="inp" style={{ height: 80 }} name="tryOnPrompt" defaultValue={data.tryOnPrompt} maxLength={600} placeholder="Masalan: a black quilted puffer jacket with a high stand-up collar, front zipper and two side pockets, hip length" />
+            <span className="hint">Rasmdagi kiyimni aniq tasvirlang (rangi, matosi, yoqasi, uzunligi) — sunʼiy intellekt shunda kiyimni aniqroq kiydiradi. Boʻsh qolsa, avtomatik tuziladi.</span>
+          </div>
         </div>
       </div>
 

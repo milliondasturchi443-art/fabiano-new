@@ -9,7 +9,7 @@ const RANK: Record<string, number> = { PENDING: 0, CONFIRMED: 1, PROCESSING: 1, 
 const DATE_LOCALE: Record<AppLocale, string> = { uz: "uz-Latn-UZ", ru: "ru-RU", en: "en-GB" };
 
 /** Чек заказа: светлая «бумажная» карточка, которую можно распечатать или сохранить в PDF. */
-export async function Receipt({ order, locale }: { order: OrderView; locale: AppLocale }) {
+export async function Receipt({ order, locale, eta }: { order: OrderView; locale: AppLocale; eta?: string | null }) {
   const [t, ta, tk] = await Promise.all([getTranslations("receipt"), getTranslations("account"), getTranslations("checkout")]);
   const money = (v: { toString(): string }) => formatMoney(v.toString(), locale, order.currency);
   const a = order.address;
@@ -22,6 +22,9 @@ export async function Receipt({ order, locale }: { order: OrderView; locale: App
   const rank = RANK[order.status] ?? 0;
   const payment = order.payments[0];
   const row = "flex justify-between gap-4 py-1.5";
+  // 0 при цене курьера 0 = «по договорённости» (оператор скажет); 0 при платном курьере = бесплатно по сумме заказа
+  const shippingLabel = Number(order.shippingTotal) > 0 ? money(order.shippingTotal)
+    : Number(order.delivery.basePrice ?? order.delivery.price ?? 0) > 0 || order.delivery.type === "PICKUP" ? t("free") : t("shippingTbd");
 
   return (
     <article id="receipt" className="mx-auto w-full max-w-[34rem] bg-[#fbf7f0] px-6 py-8 text-[#1d1715] shadow-[0_30px_80px_rgb(0_0_0/0.45)] sm:px-10 sm:py-10">
@@ -57,6 +60,11 @@ export async function Receipt({ order, locale }: { order: OrderView; locale: App
           <span className="text-[#6f6259]">{t("deliveryDate")}</span>
           <b className={deliveryDay ? "text-right capitalize" : "text-right font-normal italic text-[#8a7d70]"}>{deliveryDay ?? t("deliveryDateTbd")}</b>
         </div>
+        {!deliveryDay && !cancelled && eta && (
+          <div className="mt-1 flex items-center justify-between gap-3 px-4 py-2 text-xs text-[#6f6259]">
+            <span>{t("eta")}</span><span>{tk("eta", { days: eta })}</span>
+          </div>
+        )}
       </section>
 
       {/* Покупатель */}
@@ -98,7 +106,7 @@ export async function Receipt({ order, locale }: { order: OrderView; locale: App
       <dl className="mt-4 border-t border-dashed border-[#c9b89c] pt-3 text-sm">
         <div className={row}><dt className="text-[#6f6259]">{t("subtotal")}</dt><dd className="price">{money(order.subtotal)}</dd></div>
         {Number(order.discountTotal) > 0 && <div className={row}><dt className="text-[#6f6259]">{t("discount")}{order.couponCode ? ` (${order.couponCode})` : ""}</dt><dd className="price">−{money(order.discountTotal)}</dd></div>}
-        <div className={row}><dt className="text-[#6f6259]">{t("shipping")}</dt><dd className="price">{Number(order.shippingTotal) === 0 ? t("free") : money(order.shippingTotal)}</dd></div>
+        <div className={row}><dt className="text-[#6f6259]">{t("shipping")}</dt><dd className="price">{shippingLabel}</dd></div>
         <div className="mt-2 flex items-baseline justify-between border-t-2 border-[#1d1715] pt-3">
           <dt className="font-caps text-xs uppercase tracking-[0.2em]">{t("total")}</dt>
           <dd className="price font-serif text-2xl">{money(order.grandTotal)}</dd>

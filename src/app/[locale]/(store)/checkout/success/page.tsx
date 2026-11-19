@@ -6,6 +6,7 @@ import { Receipt } from "@/components/checkout/Receipt";
 import { ReceiptActions } from "@/components/checkout/ReceiptActions";
 import { getSessionUser } from "@/features/auth/session";
 import { getOrderForViewer } from "@/services/order-view";
+import { prisma } from "@/lib/prisma";
 import { Link, assertLocale, type AppLocale } from "@/i18n/routing";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +40,7 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
           {fresh && <p className="mx-auto mt-3 max-w-md text-muted">{t("sub")}</p>}
         </div>
 
-        <Receipt order={order} locale={locale} />
+        <Receipt order={order} locale={locale} eta={order.deliveryMethodId ? (await prisma.deliveryMethod.findUnique({ where: { id: order.deliveryMethodId }, select: { etaDays: true } }))?.etaDays : null} />
 
         <div className="mx-auto mt-8 max-w-[34rem] space-y-5 text-center">
           <ReceiptActions printLabel={t("print")} copyLabel={t("copy")} copiedLabel={t("copied")} />

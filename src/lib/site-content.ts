@@ -10,6 +10,7 @@ export const TEXT_FIELDS = [
   { key: "heroText", group: "home", label: "Sarlavha ostidagi matn", ph: "", max: 300, full: true },
   { key: "btnMen", group: "home", label: "1-tugma", ph: "Erkaklar kolleksiyasi", max: 40 },
   { key: "btnWomen", group: "home", label: "2-tugma", ph: "Ayollar kolleksiyasi", max: 40 },
+  { key: "deliveryNote", group: "home", label: "Mahsulot sahifasidagi yetkazib berish izohi (boʻsh qolsa — «Xitoydan … kunda»)", ph: "Buyurtma asosida Xitoydan keltiriladi — 15–25 kunda yetkaziladi", max: 240, full: true },
   { key: "newTitle", group: "home", label: "Mahsulotlar boʻlimi sarlavhasi", ph: "Yangi kelganlar", max: 80 },
   { key: "aboutTitle", group: "about", label: "Sarlavha", ph: "FABIANO haqida", max: 120, full: true },
   { key: "aboutText", group: "about", label: "Matn", ph: "", max: 2000, full: true, area: true },

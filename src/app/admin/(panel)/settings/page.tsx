@@ -63,9 +63,9 @@ export default async function AdminSettings() {
             <Switch name="courier" on={courier ? courier.isEnabled : true} label="Kuryer orqali" />
           </div>
           <div className="panel-b fgrid" style={{ paddingTop: 4 }}>
-            <div className="fld"><label htmlFor="d-price">Kuryer narxi (soʻm)</label><input id="d-price" className="inp" name="courierPrice" inputMode="numeric" defaultValue={n(courier?.price)} placeholder="Boʻsh qolsa — bepul" /></div>
+            <div className="fld"><label htmlFor="d-price">Kuryer narxi (soʻm)</label><input id="d-price" className="inp" name="courierPrice" inputMode="numeric" defaultValue={n(courier?.price)} placeholder="Boʻsh qolsa — narxni operator aytadi" /></div>
             <div className="fld"><label htmlFor="d-free">Bepul yetkazish (summadan boshlab)</label><input id="d-free" className="inp" name="freeFrom" inputMode="numeric" defaultValue={n(courier?.freeFrom)} placeholder="Masalan: 1000000" /></div>
-            <div className="fld"><label htmlFor="d-eta">Muddat, kun</label><input id="d-eta" className="inp" name="etaDays" defaultValue={courier?.etaDays ?? ""} placeholder="1–2" /></div>
+            <div className="fld"><label htmlFor="d-eta">Yetkazib berish muddati, kun</label><input id="d-eta" className="inp" name="etaDays" defaultValue={courier?.etaDays ?? ""} placeholder="15–25" /><span className="hint" style={{ fontSize: 12, color: "var(--mut)" }}>Mahsulot sahifasi va chekda koʻrinadi (Xitoydan kelish muddati)</span></div>
           </div>
           <div className="srow">
             <div><b>Olib ketish punkti</b><span className="d">Mijoz oʻzi olib ketishi mumkin</span></div>

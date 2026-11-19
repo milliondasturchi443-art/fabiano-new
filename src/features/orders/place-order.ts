@@ -130,7 +130,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<{ number: stri
           shippingAddress: input.address,
           customerComment: input.comment,
           deliveryMethodId: delivery.id,
-          deliverySnapshot: { type: delivery.type, name: deliveryName, price: totals.shipping },
+          deliverySnapshot: { type: delivery.type, name: deliveryName, price: totals.shipping, basePrice: delivery.price.toString() },
           couponCode: totals.appliedCoupon,
           guestAccessTokenHash: guestToken ? createHash("sha256").update(guestToken).digest("hex") : null,
           items: {

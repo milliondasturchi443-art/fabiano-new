@@ -2,12 +2,12 @@
 
 import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
-import { setDeliveryDateAction, setOrderStatusAction } from "@/features/admin/store-actions";
+import { setDeliveryDateAction, setOrderShippingAction, setOrderStatusAction } from "@/features/admin/store-actions";
 import { ORDER_ST, ORDER_STATUS, PROVIDER } from "@/components/admin/labels";
 
 export interface OrderRow {
   id: string; number: string; date: string; name: string; phone: string; phoneRaw: string;
-  total: string; count: number; status: string; next: string[]; deliveryDate: string;
+  total: string; count: number; status: string; next: string[]; deliveryDate: string; shipping: string; shippingText: string; editable: boolean;
   address: string; comment: string; delivery: string; payment: string;
   items: { name: string; color: string; size: string; qty: number; total: string }[];
   search: string;
@@ -77,6 +77,7 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                         <div>
                           <h5>MAHSULOTLAR</h5>
                           {o.items.map((i, k) => <p key={k}>{i.name} · {i.color} · <b>{i.size}</b> × {i.qty} — {i.total}</p>)}
+                          <p>Yetkazib berish: {o.shippingText}</p>
                           <p><b>Jami: {o.total}</b></p>
                         </div>
                       </div>
@@ -87,6 +88,15 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                         <button type="submit" className="mb">Saqlash</button>
                         {o.deliveryDate && <span style={{ fontSize: 12, color: "var(--ok)" }}>✓ Mijoz chekida koʻrinadi</span>}
                       </form>
+                      {o.editable && (
+                        <form action={setOrderShippingAction} style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap", alignItems: "center" }}>
+                          <input type="hidden" name="id" value={o.id} />
+                          <span style={{ fontSize: 12, color: "var(--mut)" }}>Yetkazib berish narxi (soʻm):</span>
+                          <input name="shipping" inputMode="numeric" defaultValue={o.shipping === "0" ? "" : o.shipping} placeholder="masalan 45000" className="inp inp-sm" style={{ width: 170 }} />
+                          <button type="submit" className="mb">Saqlash</button>
+                          <span style={{ fontSize: 12, color: "var(--mut)" }}>Jami summa va mijoz cheki yangilanadi</span>
+                        </form>
+                      )}
                       <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
                         <span style={{ fontSize: 12, color: "var(--mut)" }}>Holat:</span>
                         <span className="mb on">{ORDER_STATUS[o.status]?.label}</span>

@@ -14,7 +14,7 @@ import { SizeGuideDialog } from "./SizeGuideDialog";
 import { TryOnButton } from "./TryOnButton";
 import { WishlistButton } from "./WishlistButton";
 
-export function ProductDetail({ product, requestedColor, tryOn }: { product: Product; requestedColor?: string | null; tryOn: boolean }) {
+export function ProductDetail({ product, requestedColor, tryOn, deliveryNote }: { product: Product; requestedColor?: string | null; tryOn: boolean; deliveryNote?: string | null }) {
   const t = useTranslations("product");
   const tc = useTranslations("cart");
   const locale = useLocale() as AppLocale;
@@ -166,15 +166,23 @@ export function ProductDetail({ product, requestedColor, tryOn }: { product: Pro
           <button type="button" onClick={() => add(true)} disabled={pending || soldOut} className="btn btn-outline w-full disabled:opacity-40">
             {t("buyNow")}
           </button>
-          {tryOn && images[0] && (
+          {tryOn && (product.tryOnAsset.url ?? images[0]?.url) && (
             <TryOnButton
               productName={product.name}
-              imageUrl={images[0].url}
+              imageUrl={(product.tryOnAsset.url ?? images[0]?.url)!}
               categorySlug={product.category.slug}
               colorCode={color}
+              customPrompt={product.tryOnAsset.prompt}
             />
           )}
         </div>
+
+        {deliveryNote && (
+          <p className="mt-5 flex items-start gap-3 border border-line bg-paper px-4 py-3 text-[0.8rem] leading-relaxed text-ink/80">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className="mt-0.5 shrink-0 text-gold" aria-hidden><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" /><circle cx="7" cy="17.5" r="1.6" /><circle cx="17" cy="17.5" r="1.6" /></svg>
+            {deliveryNote}
+          </p>
+        )}
 
         {message && (
           <p role={message.kind === "error" ? "alert" : "status"} className={`mt-4 flex items-center justify-between gap-4 text-sm ${message.kind === "error" ? "text-danger" : ""}`}>

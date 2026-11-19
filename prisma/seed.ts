@@ -117,8 +117,10 @@ async function main() {
   if (anyDelivery === 0) {
     const courier = await prisma.deliveryMethod.findFirst({ where: { type: "COURIER" } });
     if (courier) await prisma.deliveryMethod.update({ where: { id: courier.id }, data: { isEnabled: true } });
-    else await prisma.deliveryMethod.create({ data: { type: "COURIER", names: { uz: "Kuryer orqali", ru: "Курьером", en: "Courier" }, price: "0", etaDays: "1–3", isEnabled: true, sortOrder: 0 } });
+    else await prisma.deliveryMethod.create({ data: { type: "COURIER", names: { uz: "Kuryer orqali", ru: "Курьером", en: "Courier" }, price: "0", etaDays: "15–25", isEnabled: true, sortOrder: 0 } });
   }
+  // Товары везут из Китая: старое значение по умолчанию «1–3» заменяем на реальный срок (своё значение владельца не трогаем)
+  await prisma.deliveryMethod.updateMany({ where: { type: "COURIER", etaDays: "1–3" }, data: { etaDays: "15–25" } });
 
   // Информационные страницы: создаются один раз, правки администратора не перезаписываются
   for (const locale of ["uz", "ru", "en"] as const) {

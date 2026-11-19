@@ -6,6 +6,7 @@ import { Breadcrumbs } from "@/components/catalog/Breadcrumbs";
 import { ProductDetail } from "@/components/product/ProductDetail";
 import { ProductRail } from "@/components/home/ProductRail";
 import { getProductBySlug, getRelatedProducts, isTryOnEnabledFor } from "@/services/product";
+import { getDeliveryInfo } from "@/services/catalog";
 import { totalAvailable } from "@/features/product/variants";
 import { locales, type AppLocale, assertLocale } from "@/i18n/routing";
 
@@ -49,14 +50,16 @@ export default async function ProductPage({ params, searchParams }: Props) {
   const product = await getProductBySlug(slug, locale);
   if (!product) notFound();
 
-  const [{ color }, t, tn, tp, related, tryOn] = await Promise.all([
+  const [{ color }, t, tn, tp, related, tryOn, delivery] = await Promise.all([
     searchParams,
     getTranslations("catalog"),
     getTranslations("nav"),
     getTranslations("product"),
     getRelatedProducts(product, locale),
     isTryOnEnabledFor(product),
+    getDeliveryInfo(locale),
   ]);
+  const deliveryNote = delivery.note || (delivery.eta ? tp("deliveryNote", { days: delivery.eta }) : null);
 
   const genderPath = product.category.gender === "WOMEN" ? "/women" : "/men";
   const genderName = product.category.gender === "WOMEN" ? tn("women") : tn("men");
@@ -96,7 +99,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
             { name: product.name },
           ]}
         />
-        <ProductDetail product={product} requestedColor={color} tryOn={tryOn} />
+        <ProductDetail product={product} requestedColor={color} tryOn={tryOn} deliveryNote={deliveryNote} />
         {related.length > 0 && (
           <ProductRail title={tp("related")} href={`${genderPath}/${product.category.slug}`} viewAll={t("allInCategory")} products={related} emptyText="" />
         )}

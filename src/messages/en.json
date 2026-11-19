@@ -111,7 +111,8 @@
         "unsupported": "This browser does not support live try-on. Open a recent Chrome or Safari.",
         "generic": "Could not connect. Check your internet and try again."
       }
-    }
+    },
+    "deliveryNote": "Items are ordered from China for you. Estimated delivery time: {days} days. We will confirm the exact date after you order."
   },
   "newsletter": {
     "title": "Be the first to know",
@@ -361,7 +362,9 @@
     "paymentOnDelivery": "You will pay when you receive the order.",
     "continue": "Continue shopping",
     "viewInAccount": "View in account",
-    "guestNote": "Save the link to this page — you can use it to view your order."
+    "guestNote": "Save the link to this page — you can use it to view your order.",
+    "priceOnRequest": "To be agreed",
+    "priceOnRequestHint": "The operator will confirm the delivery cost"
   },
   "lead": {
     "eyebrow": "Get in touch",
@@ -426,6 +429,8 @@
       "SHIPPED": "On the way",
       "DELIVERED": "Delivered"
     },
-    "opening": "Order placed — opening your receipt…"
+    "opening": "Order placed — opening your receipt…",
+    "eta": "Estimated time",
+    "shippingTbd": "To be agreed"
   }
 }
