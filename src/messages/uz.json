@@ -109,7 +109,8 @@
         "limit": "Juda koʻp urinish. Birozdan keyin qayta urinib koʻring.",
         "unavailable": "Jonli kiyib koʻrish hozircha oʻchirilgan.",
         "unsupported": "Bu brauzer jonli kiyib koʻrishni qoʻllab-quvvatlamaydi. Chrome yoki Safari’ning yangi versiyasini oching.",
-        "generic": "Ulanib boʻlmadi. Internetni tekshirib, qayta urinib koʻring."
+        "generic": "Ulanib boʻlmadi. Internetni tekshirib, qayta urinib koʻring.",
+        "credits": "Jonli kiyib koʻrish vaqtincha ishlamayapti. Tez orada tiklanadi."
       }
     },
     "deliveryNote": "Mahsulotlar buyurtma asosida Xitoydan keltiriladi. Taxminiy yetkazib berish muddati — {days} kun. Aniq kunni buyurtmadan keyin xabar qilamiz."

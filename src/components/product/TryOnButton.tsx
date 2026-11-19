@@ -24,7 +24,7 @@ interface DecartSdk {
 }
 
 type Phase = "closed" | "intro" | "connecting" | "live" | "error";
-type ErrKey = "camera" | "limit" | "unavailable" | "unsupported" | "generic";
+type ErrKey = "camera" | "limit" | "unavailable" | "unsupported" | "credits" | "generic";
 
 interface Props {
   productName: string;
@@ -116,11 +116,11 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode, cu
       sessionRef.current = session;
       session.on?.("error", (err) => {
         if (run !== runRef.current) return;
-        const m = err instanceof Error ? err.message : String(err);
+        const m = err instanceof Error ? err.message : typeof err === "object" ? JSON.stringify(err) : String(err);
         reportClientError(Object.assign(new Error(`try-on session: ${m}`.slice(0, 500)), { digest: "try-on" }));
         void stop();
         setDetail(m.slice(0, 160));
-        setErr("generic");
+        setErr(/credit|balance|quota/i.test(m) ? "credits" : "generic");
         setPhase("error");
       });
       session.on?.("connectionChange", (state) => {
@@ -144,6 +144,7 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode, cu
         /NotAllowed|Permission|NotFound|NotReadable|Overconstrained/i.test(name) ? "camera"
           : /RATE_LIMITED|429/.test(name) ? "limit"
           : /NOT_CONFIGURED|DISABLED|503/.test(name) ? "unavailable"
+          : /credit|balance|quota/i.test(name) ? "credits"
           : "generic",
       );
       setPhase("error");

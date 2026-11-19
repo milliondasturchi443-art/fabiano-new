@@ -109,7 +109,8 @@
         "limit": "Too many attempts. Please try again a bit later.",
         "unavailable": "Live try-on is currently turned off.",
         "unsupported": "This browser does not support live try-on. Open a recent Chrome or Safari.",
-        "generic": "Could not connect. Check your internet and try again."
+        "generic": "Could not connect. Check your internet and try again.",
+        "credits": "Live try-on is temporarily unavailable. It will be back soon."
       }
     },
     "deliveryNote": "Items are ordered from China for you. Estimated delivery time: {days} days. We will confirm the exact date after you order."
