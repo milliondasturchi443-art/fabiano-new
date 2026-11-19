@@ -29,5 +29,5 @@ npm run test:e2e   # Playwright, desktop + mobile
 |---|---|---|
 | Payme | `PAYME_MERCHANT_ID`, `PAYME_SECRET_KEY` | метод скрыт в checkout |
 | Click | `CLICK_SERVICE_ID`, `CLICK_MERCHANT_ID`, `CLICK_MERCHANT_USER_ID`, `CLICK_SECRET_KEY` | метод скрыт в checkout |
-| Fabiano Try-On | `FEATURE_TRY_ON`, `TRY_ON_*` + пакет SDK | кнопка TRY IT ON LIVE неактивна |
+| Живая примерка (Decart Lucy V-TON) | `DECART_API_KEY` + «Jonli kiyib koʻrish» в админке | кнопка примерки не показывается |
 | Email | `SMTP_*` | сброс пароля и подтверждения не отправляются |

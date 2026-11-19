@@ -669,7 +669,7 @@ model StoreSettings {
   defaultLocale   Locale   @default(uz)
   enabledLocales  Locale[] @default([uz, ru])
   homeContent     Json?    // тексты Brand Section и т.п. по локалям
-  tryOnEnabled    Boolean  @default(false) // работает только вместе с env FEATURE_TRY_ON=true
+  tryOnEnabled    Boolean  @default(false) // живая примерка Decart; работает только при заданном DECART_API_KEY
   updatedAt       DateTime @updatedAt
 }
 

@@ -112,9 +112,12 @@ export async function getRelatedProducts(product: ProductDetail, locale: AppLoca
   return rows.map((r) => toCard(r, locale));
 }
 
-/** Try-On доступен на сервере, если включён env-флаг, настройка магазина и сам товар. Движок SDK проверяется на клиенте. */
+/**
+ * Живая примерка (Decart Lucy V-TON) доступна, если на сервере задан DECART_API_KEY,
+ * в админке включена «Jonli kiyib koʻrish» и у товара есть хотя бы одно фото.
+ */
 export async function isTryOnEnabledFor(product: ProductDetail): Promise<boolean> {
-  if (process.env.FEATURE_TRY_ON !== "true" || !product.tryOnEnabled) return false;
+  if (!process.env.DECART_API_KEY || product.images.length === 0) return false;
   const s = await prisma.storeSettings.findUnique({ where: { id: "default" }, select: { tryOnEnabled: true } });
   return Boolean(s?.tryOnEnabled);
 }

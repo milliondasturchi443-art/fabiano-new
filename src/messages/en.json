@@ -84,7 +84,7 @@
     "material": "Composition",
     "care": "Care",
     "tryOn": "Try it on live",
-    "tryOnNotReady": "Virtual try-on is not available on this device yet.",
+    "tryOnNotReady": "Live try-on is not available yet.",
     "related": "You may also like",
     "zoom": "Zoom",
     "close": "Close",
@@ -92,7 +92,26 @@
     "prevImage": "Previous image",
     "nextImage": "Next image",
     "noImage": "No photo",
-    "soldOutShort": "Sold out"
+    "soldOutShort": "Sold out",
+    "tryOnUi": {
+      "intro": "Turn on your camera and see the garment on you in real time. Turn around, move freely.",
+      "tip1": "Stand 1–2 metres from the camera in good light.",
+      "tip2": "Remove thick outer layers for a more accurate result.",
+      "start": "Turn on camera",
+      "retry": "Try again",
+      "stop": "Stop",
+      "close": "Close",
+      "connecting": "Connecting…",
+      "secondsLeft": "{n} s",
+      "privacy": "Video is not stored and is used only for the try-on (Decart AI).",
+      "err": {
+        "camera": "Camera access was denied. Allow the camera in your browser settings.",
+        "limit": "Too many attempts. Please try again a bit later.",
+        "unavailable": "Live try-on is currently turned off.",
+        "unsupported": "This browser does not support live try-on. Open a recent Chrome or Safari.",
+        "generic": "Could not connect. Check your internet and try again."
+      }
+    }
   },
   "newsletter": {
     "title": "Be the first to know",

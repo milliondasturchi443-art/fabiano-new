@@ -135,6 +135,15 @@ export async function togglePaymentAction(form: FormData) {
   revalidatePath("/admin/settings");
 }
 
+export async function toggleTryOnAction() {
+  await requireAdmin("*");
+  if (!process.env.DECART_API_KEY) return; // без ключа Decart включать нечего
+  const s = await prisma.storeSettings.upsert({ where: { id: "default" }, create: { id: "default" }, update: {} });
+  await prisma.storeSettings.update({ where: { id: "default" }, data: { tryOnEnabled: !s.tryOnEnabled } });
+  revalidatePath("/admin/settings");
+  revalidatePath("/", "layout");
+}
+
 const deliverySchema = z.object({
   type: z.enum(["COURIER", "PICKUP", "OTHER"]),
   name_uz: z.string().trim().min(2).max(80),

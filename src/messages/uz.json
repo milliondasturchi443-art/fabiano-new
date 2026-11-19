@@ -84,7 +84,7 @@
     "material": "Tarkibi",
     "care": "Parvarish",
     "tryOn": "Jonli kiyib koʻrish",
-    "tryOnNotReady": "Virtual kiyib koʻrish ushbu qurilmada hozircha mavjud emas.",
+    "tryOnNotReady": "Jonli kiyib koʻrish hozircha mavjud emas.",
     "related": "Sizga yoqishi mumkin",
     "zoom": "Kattalashtirish",
     "close": "Yopish",
@@ -92,7 +92,26 @@
     "prevImage": "Oldingi rasm",
     "nextImage": "Keyingi rasm",
     "noImage": "Rasm yoʻq",
-    "soldOutShort": "Qolmagan"
+    "soldOutShort": "Qolmagan",
+    "tryOnUi": {
+      "intro": "Kamerani yoqing — kiyim real vaqtda ustingizda koʻrinadi. Burilib, harakatlanib koʻring.",
+      "tip1": "Telefonni 1–2 metr uzoqroqqa qoʻying, yorugʻ joyda turing.",
+      "tip2": "Qalin ustki kiyimni yechsangiz natija aniqroq boʻladi.",
+      "start": "Kamerani yoqish",
+      "retry": "Qayta urinish",
+      "stop": "Toʻxtatish",
+      "close": "Yopish",
+      "connecting": "Ulanmoqda…",
+      "secondsLeft": "{n} s",
+      "privacy": "Video saqlanmaydi va faqat kiyib koʻrish uchun ishlatiladi (Decart AI).",
+      "err": {
+        "camera": "Kameraga ruxsat berilmadi. Brauzer sozlamalarida kameraga ruxsat bering.",
+        "limit": "Juda koʻp urinish. Birozdan keyin qayta urinib koʻring.",
+        "unavailable": "Jonli kiyib koʻrish hozircha oʻchirilgan.",
+        "unsupported": "Bu brauzer jonli kiyib koʻrishni qoʻllab-quvvatlamaydi. Chrome yoki Safari’ning yangi versiyasini oching.",
+        "generic": "Ulanib boʻlmadi. Internetni tekshirib, qayta urinib koʻring."
+      }
+    }
   },
   "newsletter": {
     "title": "Yangiliklardan birinchi boʻlib xabardor boʻling",

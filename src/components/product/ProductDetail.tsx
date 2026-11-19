@@ -166,7 +166,14 @@ export function ProductDetail({ product, requestedColor, tryOn }: { product: Pro
           <button type="button" onClick={() => add(true)} disabled={pending || soldOut} className="btn btn-outline w-full disabled:opacity-40">
             {t("buyNow")}
           </button>
-          {tryOn && <TryOnButton productId={product.id} colorCode={color} variantId={variant?.id ?? null} />}
+          {tryOn && images[0] && (
+            <TryOnButton
+              productName={product.name}
+              imageUrl={images[0].url}
+              categorySlug={product.category.slug}
+              colorCode={color}
+            />
+          )}
         </div>
 
         {message && (

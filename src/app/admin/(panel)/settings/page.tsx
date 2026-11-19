@@ -4,7 +4,7 @@ import { formatUzPhone } from "@/lib/phone";
 import { localized } from "@/services/catalog";
 import { requireAdmin } from "@/features/admin/guard";
 import { changePasswordAction } from "@/features/admin/auth-actions";
-import { createDeliveryAction, deleteDeliveryAction, saveSettingsAction, saveTextsAction, toggleDeliveryAction, togglePaymentAction } from "@/features/admin/store-actions";
+import { createDeliveryAction, deleteDeliveryAction, saveSettingsAction, saveTextsAction, toggleDeliveryAction, togglePaymentAction, toggleTryOnAction } from "@/features/admin/store-actions";
 import { ActionForm, ConfirmButton, inputCls, labelCls } from "@/components/admin/ui";
 
 export const metadata = { title: "Sozlamalar" };
@@ -19,6 +19,7 @@ export default async function AdminSettings() {
   const socials = (s?.socials ?? {}) as { instagram?: string; telegram?: string };
   const cod = payments.find((p) => p.provider === "CASH_ON_DELIVERY");
   const paymeReady = Boolean(process.env.PAYME_MERCHANT_ID && process.env.PAYME_SECRET_KEY);
+  const decartReady = Boolean(process.env.DECART_API_KEY);
   const clickReady = Boolean(process.env.CLICK_SERVICE_ID && process.env.CLICK_SECRET_KEY);
   const locales = s?.enabledLocales ?? ["uz", "ru"];
   const texts = (s?.homeContent ?? {}) as { announce?: Record<string, string | undefined>; about?: Record<string, string | undefined> };
@@ -52,6 +53,30 @@ export default async function AdminSettings() {
             <span className="text-xs text-muted">mavjud emas</span>
           </li>
         </ul>
+      </section>
+
+      <section id="try-on" className="card p-6">
+        <h2 className="text-2xl">Jonli kiyib koʻrish</h2>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
+          <div className="max-w-xl">
+            <p className="font-medium">
+              Decart Lucy V-TON{" "}
+              <span className={`pill ml-2 ${decartReady && s?.tryOnEnabled ? "text-success" : "text-muted"}`}>
+                {!decartReady ? "kalit yoʻq" : s?.tryOnEnabled ? "yoqilgan" : "oʻchirilgan"}
+              </span>
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              {decartReady
+                ? "Xaridor mahsulot sahifasida kamerani yoqadi va kiyimni real vaqtda ustida koʻradi. Rasmi bor barcha mahsulotlarda ishlaydi. Har bir seans 90 soniyagacha, bir IP uchun soatiga 8 ta."
+                : "Ishlashi uchun platform.decart.ai’dan API kalit oling va Render → Environment’ga DECART_API_KEY sifatida qoʻshing."}
+            </p>
+          </div>
+          {decartReady && (
+            <form action={toggleTryOnAction}>
+              <button className={`btn btn-sm ${s?.tryOnEnabled ? "btn-outline" : "btn-primary"}`}>{s?.tryOnEnabled ? "Oʻchirish" : "Yoqish"}</button>
+            </form>
+          )}
+        </div>
       </section>
 
       <section id="delivery" className="card p-6">
