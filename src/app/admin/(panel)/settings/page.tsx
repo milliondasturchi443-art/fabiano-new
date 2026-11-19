@@ -29,6 +29,7 @@ export default async function AdminSettings() {
   const paymeReady = Boolean(process.env.PAYME_MERCHANT_ID && process.env.PAYME_SECRET_KEY);
   const clickReady = Boolean(process.env.CLICK_SERVICE_ID && process.env.CLICK_SECRET_KEY);
   const decartReady = Boolean(process.env.DECART_API_KEY);
+  const anywearOk = process.env.ANYWEAR_ENABLED === "1";
   const canOrder = Boolean(cod?.isEnabled) && deliveries.some((d) => d.isEnabled);
   const n = (v: { toString(): string } | null | undefined) => (v && Number(v) > 0 ? String(Math.round(Number(v))) : "");
 
@@ -80,11 +81,11 @@ export default async function AdminSettings() {
       <div className="panel" id="try-on" style={{ marginTop: 10 }}>
         <div className="panel-h"><h4>Jonli kiyib koʻrish</h4></div>
         {([
-          { v: "anywear", t: "Anywear (tavsiya etiladi)", d: "Decart’ning tayyor vidjeti — Anywear kengaytmasidagi sifat. Mahsulot sahifasiga oʻzi tugma qoʻshadi. Beta davrida bepul, kalit kerak emas." },
-          { v: "decart", t: "Oʻz tugmamiz (Decart kaliti)", d: decartReady ? "Saytimiz dizaynidagi «Jonli kiyib koʻrish» tugmasi. Toʻlov — Decart kalitingizdan, soniyasiga ~$0.02. Seans 90 soniyagacha." : "Ishlashi uchun Render → Environment’ga DECART_API_KEY qoʻshing." },
+          { v: "decart", t: "Oʻz tugmamiz (tavsiya etiladi)", d: decartReady ? "«Hozir sotib olish» ostidagi «Jonli kiyib koʻrish» tugmasi. Toʻlov — Decart kalitingizdan, soniyasiga ~$0.02. Seans 90 soniyagacha." : "Ishlashi uchun Render → Environment’ga DECART_API_KEY qoʻshing." },
+          { v: "anywear", t: "Anywear vidjeti", d: anywearOk ? "Anywear’ning suzuvchi oynasi (chap pastda)." : "Faqat doʻkon anywear.decart.ai/business’da roʻyxatdan oʻtgach ishlaydi. Hozircha tanlansa ham, saytda oʻz tugmamiz koʻrinadi." },
           { v: "off", t: "Oʻchirilgan", d: "Saytda kiyib koʻrish koʻrinmaydi." },
         ] as const).map((o) => {
-          const active = (s?.tryOnProvider ?? "anywear") === o.v;
+          const active = (s?.tryOnProvider ?? "decart") === o.v;
           return (
             <form key={o.v} action={setTryOnProviderAction} className="srow">
               <input type="hidden" name="provider" value={o.v} />

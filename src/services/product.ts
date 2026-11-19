@@ -122,8 +122,15 @@ export async function getRelatedProducts(product: ProductDetail, locale: AppLoca
  * Живая примерка (Decart Lucy V-TON) доступна, если на сервере задан DECART_API_KEY,
  * в админке включена «Jonli kiyib koʻrish» и у товара есть хотя бы одно фото.
  */
+/** Виджет Anywear открывается только на сайтах, зарегистрированных у Anywear (иначе «refused to connect»). */
+export function anywearReady(): boolean {
+  return process.env.ANYWEAR_ENABLED === "1";
+}
+
 export async function isTryOnEnabledFor(product: ProductDetail): Promise<boolean> {
   if (!process.env.DECART_API_KEY || product.images.length === 0) return false;
-  const s = await prisma.storeSettings.findUnique({ where: { id: "default" }, select: { tryOnEnabled: true, tryOnProvider: true } });
-  return Boolean(s?.tryOnEnabled) && s?.tryOnProvider === "decart";
+  const s = await prisma.storeSettings.findUnique({ where: { id: "default" }, select: { tryOnProvider: true } });
+  const provider = s?.tryOnProvider ?? "decart";
+  // Своя кнопка под «Hozir sotib olish» — всегда, кроме «off» и случая, когда реально работает виджет Anywear
+  return provider !== "off" && !(provider === "anywear" && anywearReady());
 }

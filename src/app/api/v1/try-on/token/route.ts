@@ -15,8 +15,8 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
   const apiKey = process.env.DECART_API_KEY;
   if (!apiKey) return jsonError("NOT_CONFIGURED", 503);
-  const settings = await prisma.storeSettings.findUnique({ where: { id: "default" }, select: { tryOnEnabled: true } });
-  if (!settings?.tryOnEnabled) return jsonError("DISABLED", 503);
+  const settings = await prisma.storeSettings.findUnique({ where: { id: "default" }, select: { tryOnProvider: true } });
+  if (settings?.tryOnProvider === "off") return jsonError("DISABLED", 503);
 
   const ip = clientIp(req);
   if (!rateLimit(`tryon:${ip}`, 20, 3600).ok || !rateLimit("tryon:global", 300, 3600).ok) return jsonError("RATE_LIMITED", 429);
