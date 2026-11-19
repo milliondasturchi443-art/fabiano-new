@@ -160,10 +160,11 @@ export function ProductDetail({ product, requestedColor, tryOn, deliveryNote }: 
 
         {/* Действия */}
         <div className="mt-5 grid gap-3">
-          <button type="button" onClick={() => add(false)} disabled={pending || soldOut} className="btn btn-primary w-full disabled:opacity-40">
+          {/* id/класс add-to-cart и data-add-to-cart — по ним виджет Anywear находит кнопку и ставит рядом «примерить» */}
+          <button type="button" id="AddToCart" data-add-to-cart onClick={() => add(false)} disabled={pending || soldOut} className="add-to-cart btn btn-primary w-full disabled:opacity-40">
             {t("addToCart")}
           </button>
-          <button type="button" onClick={() => add(true)} disabled={pending || soldOut} className="btn btn-outline w-full disabled:opacity-40">
+          <button type="button" id="buy-now-button" onClick={() => add(true)} disabled={pending || soldOut} className="buy-now btn btn-outline w-full disabled:opacity-40">
             {t("buyNow")}
           </button>
           {tryOn && (product.tryOnAsset.url ?? images[0]?.url) && (

@@ -25,7 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = p.metaTitle ?? p.name;
   const description = p.metaDescription ?? p.description.slice(0, 160);
   const path = `/product/${p.slug}`;
-  const image = p.images[0];
+  // Для превью и для виджета примерки: фото, отмеченное «KIYISH», иначе первое
+  const image = (p.tryOnAsset.url && p.images.find((i) => i.url === p.tryOnAsset.url)) || p.images[0];
   return {
     title,
     description,
@@ -40,6 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `/${locale}${path}`,
       images: image ? [{ url: image.url, width: image.width, height: image.height, alt: image.alt }] : undefined,
     },
+    other: { "product:price:amount": String(p.price), "product:price:currency": p.currency },
   };
 }
 
@@ -72,7 +74,10 @@ export default async function ProductPage({ params, searchParams }: Props) {
     description: product.description,
     sku: product.sku,
     brand: { "@type": "Brand", name: product.brand },
-    image: product.images.slice(0, 6).map((i) => i.url),
+    // абсолютные ссылки; фото для примерки — первым (его берёт виджет Anywear)
+    image: [...new Set([product.tryOnAsset.url, ...product.images.map((i) => i.url)].filter((u): u is string => Boolean(u)))]
+      .slice(0, 6)
+      .map((u) => (u.startsWith("/") ? `${base || "https://fabiano-store.onrender.com"}${u}` : u)),
     url: `${base}/${locale}/product/${product.slug}`,
     ...(product.rating ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating.average, reviewCount: product.rating.count } } : {}),
     offers: {
