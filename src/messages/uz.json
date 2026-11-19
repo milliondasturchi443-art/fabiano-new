@@ -261,10 +261,10 @@
     "reorderDone": "Mavjud mahsulotlar savatga qoʻshildi",
     "loginRequired": "Davom etish uchun hisobingizga kiring.",
     "statuses": {
-      "PENDING": "Kutilmoqda",
+      "PENDING": "Qabul qilindi",
       "CONFIRMED": "Tasdiqlandi",
       "PROCESSING": "Tayyorlanmoqda",
-      "SHIPPED": "Yuborildi",
+      "SHIPPED": "Yoʻlda",
       "DELIVERED": "Yetkazildi",
       "CANCELLED": "Bekor qilindi",
       "REFUNDED": "Pul qaytarildi"
@@ -348,7 +348,12 @@
       "INVALID_INPUT": "Barcha majburiy maydonlarni toʻldiring.",
       "INVALID_PHONE": "Telefon raqamini +998 XX XXX XX XX formatida kiriting.",
       "RATE_LIMITED": "Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring.",
-      "GENERIC": "Xatolik yuz berdi. Qayta urinib koʻring."
+      "GENERIC": "Xatolik yuz berdi. Qayta urinib koʻring.",
+      "CHECK_FIELDS": "Qizil bilan belgilangan maydonlarni toʻgʻrilang.",
+      "REGION_EMPTY": "Viloyatni tanlang.",
+      "ADDR_DISTRICT": "Tuman yoki shahar nomini yozing.",
+      "ADDR_STREET": "Koʻcha yoki mahalla nomini yozing.",
+      "ADDR_HOUSE": "Uy raqamini yozing (masalan: 12 yoki 12A)."
     },
     "successTitle": "Rahmat! Buyurtmangiz qabul qilindi",
     "successText": "Tez orada operatorimiz buyurtmani tasdiqlash uchun siz bilan bogʻlanadi.",
@@ -386,6 +391,40 @@
       "PHONE_FAKE": "Bu raqam haqiqiyga oʻxshamaydi — iltimos, oʻz raqamingizni yozing",
       "RATE_LIMITED": "Juda koʻp urinish. Birozdan soʻng qayta urinib koʻring.",
       "GENERIC": "Xatolik yuz berdi. Qayta urinib koʻring."
+    }
+  },
+  "receipt": {
+    "title": "Chek",
+    "thanks": "Rahmat! Buyurtmangiz qabul qilindi",
+    "sub": "Tez orada siz bilan bogʻlanamiz va yetkazib berish kunini aytamiz.",
+    "number": "Buyurtma raqami",
+    "date": "Sana",
+    "customer": "Xaridor",
+    "phone": "Telefon",
+    "address": "Manzil",
+    "payment": "Toʻlov",
+    "delivery": "Yetkazib berish",
+    "deliveryDate": "Yetkazib berish kuni",
+    "deliveryDateTbd": "Admin tez orada belgilaydi",
+    "status": "Holati",
+    "item": "Mahsulot",
+    "qty": "Soni",
+    "sum": "Summa",
+    "subtotal": "Mahsulotlar",
+    "shipping": "Yetkazib berish",
+    "discount": "Chegirma",
+    "total": "Jami toʻlov",
+    "free": "Bepul",
+    "print": "Chekni saqlash / chop etish",
+    "copy": "Havolani nusxalash",
+    "copied": "Nusxalandi ✓",
+    "track": "Buyurtma holati shu sahifada yangilanib turadi. Havolani saqlab qoʻying.",
+    "cancelled": "Buyurtma bekor qilindi",
+    "steps": {
+      "PENDING": "Qabul qilindi",
+      "CONFIRMED": "Tasdiqlandi",
+      "SHIPPED": "Yoʻlda",
+      "DELIVERED": "Yetkazildi"
     }
   }
 }

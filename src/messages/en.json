@@ -261,10 +261,10 @@
     "reorderDone": "Available items were added to your cart",
     "loginRequired": "Please sign in to continue.",
     "statuses": {
-      "PENDING": "Pending",
+      "PENDING": "Received",
       "CONFIRMED": "Confirmed",
       "PROCESSING": "Processing",
-      "SHIPPED": "Shipped",
+      "SHIPPED": "On the way",
       "DELIVERED": "Delivered",
       "CANCELLED": "Cancelled",
       "REFUNDED": "Refunded"
@@ -348,7 +348,12 @@
       "INVALID_INPUT": "Please fill in all required fields.",
       "INVALID_PHONE": "Enter the phone as +998 XX XXX XX XX.",
       "RATE_LIMITED": "Too many attempts. Please try again shortly.",
-      "GENERIC": "Something went wrong. Please try again."
+      "GENERIC": "Something went wrong. Please try again.",
+      "CHECK_FIELDS": "Please fix the fields marked in red.",
+      "REGION_EMPTY": "Select a region.",
+      "ADDR_DISTRICT": "Enter the district or city.",
+      "ADDR_STREET": "Enter the street or mahalla.",
+      "ADDR_HOUSE": "Enter the house number (e.g. 12 or 12A)."
     },
     "successTitle": "Thank you! Your order has been placed",
     "successText": "Our team will contact you shortly to confirm the order.",
@@ -386,6 +391,40 @@
       "PHONE_FAKE": "This number does not look real — please enter yours",
       "RATE_LIMITED": "Too many attempts. Please try again shortly.",
       "GENERIC": "Something went wrong. Please try again."
+    }
+  },
+  "receipt": {
+    "title": "Receipt",
+    "thanks": "Thank you! Your order has been received",
+    "sub": "We will contact you soon and confirm the delivery day.",
+    "number": "Order number",
+    "date": "Date",
+    "customer": "Customer",
+    "phone": "Phone",
+    "address": "Address",
+    "payment": "Payment",
+    "delivery": "Delivery",
+    "deliveryDate": "Delivery day",
+    "deliveryDateTbd": "The store will set it soon",
+    "status": "Status",
+    "item": "Item",
+    "qty": "Qty",
+    "sum": "Amount",
+    "subtotal": "Items",
+    "shipping": "Delivery",
+    "discount": "Discount",
+    "total": "Total to pay",
+    "free": "Free",
+    "print": "Save / print receipt",
+    "copy": "Copy link",
+    "copied": "Copied ✓",
+    "track": "The order status updates on this page. Save the link.",
+    "cancelled": "Order cancelled",
+    "steps": {
+      "PENDING": "Received",
+      "CONFIRMED": "Confirmed",
+      "SHIPPED": "On the way",
+      "DELIVERED": "Delivered"
     }
   }
 }

@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   if (!settings?.tryOnEnabled) return jsonError("DISABLED", 503);
 
   const ip = clientIp(req);
-  if (!rateLimit(`tryon:${ip}`, 8, 3600).ok || !rateLimit("tryon:global", 300, 3600).ok) return jsonError("RATE_LIMITED", 429);
+  if (!rateLimit(`tryon:${ip}`, 20, 3600).ok || !rateLimit("tryon:global", 300, 3600).ok) return jsonError("RATE_LIMITED", 429);
 
   try {
     const sdk = decart as unknown as {

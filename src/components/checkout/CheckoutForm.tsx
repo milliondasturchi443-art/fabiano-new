@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useMemo, useState } from "react";
+import { startTransition, useActionState, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { checkoutAction } from "@/features/orders/checkout-action";
 import { formatMoney, fromMinor, toMinor } from "@/lib/money";
+import { validateCheckout, type CheckoutField, type FieldErrors } from "@/features/orders/checkout-validate";
+import { PhoneInput } from "@/components/lead/PhoneInput";
 import type { CartView } from "@/services/cart";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -30,10 +32,38 @@ export function CheckoutForm({
   const tc = useTranslations("cart");
   const ta = useTranslations("account");
   const locale = useLocale() as AppLocale;
-  const [state, action, pending] = useActionState(checkoutAction, null);
+  const tl = useTranslations("lead");
+  const [state, dispatch, pending] = useActionState(checkoutAction, null);
   const regions = t.raw("regions") as string[];
   const v = state?.values ?? {};
   const [region, setRegion] = useState("");
+  const [local, setLocal] = useState<FieldErrors | null>(null);
+  const fe: FieldErrors = local ?? state?.fields ?? {};
+  const fmsg = (f: CheckoutField) => {
+    const code = fe[f];
+    if (!code) return null;
+    if (code.startsWith("NAME_") || code.startsWith("PHONE_")) return tl(`errors.${code}` as "errors.GENERIC");
+    return t.has(`errors.${code}`) ? t(`errors.${code}` as "errors.GENERIC") : t("errors.INVALID_INPUT");
+  };
+  const errText = (f: CheckoutField) => {
+    const m = fmsg(f);
+    return m ? <span id={`co-${f}-err`} className="mt-1.5 block text-[0.78rem] text-danger">{m}</span> : null;
+  };
+  const inv = (f: CheckoutField) => (fe[f] ? { "aria-invalid": true as const, "aria-describedby": `co-${f}-err` } : {});
+
+  function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const errs = validateCheckout(Object.fromEntries([...fd.entries()].map(([k, x]) => [k, String(x)])));
+    if (Object.keys(errs).length) {
+      setLocal(errs);
+      const first = (["firstName", "lastName", "phone", "region", "district", "street", "house"] as const).find((k) => errs[k]);
+      if (first) e.currentTarget.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
+      return;
+    }
+    setLocal(null);
+    startTransition(() => dispatch(fd));
+  }
   const [deliveryId, setDeliveryId] = useState(deliveries[0]?.id ?? "");
 
   const available = deliveries.filter((d) => d.regions.length === 0 || !region || d.regions.includes(region));
@@ -46,20 +76,28 @@ export function CheckoutForm({
     return { shipping: fromMinor(ship), total: fromMinor(afterDiscount + ship) };
   }, [cart.totals, delivery]);
 
-  const err = state?.error ? (t.has(`errors.${state.error}`) ? t(`errors.${state.error}` as "errors.GENERIC") : t("errors.GENERIC")) : null;
+  const err = state?.error && state.error !== "CHECK_FIELDS" ? (t.has(`errors.${state.error}`) ? t(`errors.${state.error}` as "errors.GENERIC") : t("errors.GENERIC")) : null;
   const input = "field mt-1.5";
   const label = "text-xs font-medium text-muted";
 
   return (
-    <form action={action} className="grid gap-12 pb-28 lg:grid-cols-[1fr_24rem] lg:gap-16 lg:pb-0">
+    <form
+      onSubmit={submit}
+      onChange={(e) => {
+        if (!local && !state?.fields) return;
+        const fd = new FormData(e.currentTarget);
+        setLocal(validateCheckout(Object.fromEntries([...fd.entries()].map(([k, x]) => [k, String(x)]))));
+      }}
+      noValidate
+      className="grid gap-12 pb-28 lg:grid-cols-[1fr_24rem] lg:gap-16 lg:pb-0">
       <input type="hidden" name="locale" value={locale} />
       <div className="space-y-12">
         <fieldset>
           <legend className="text-3xl">{t("contact")}</legend>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <label><span className={label}>{ta("firstName")} *</span><input name="firstName" required autoComplete="given-name" defaultValue={v.firstName ?? prefill.firstName ?? ""} className={input} /></label>
-            <label><span className={label}>{ta("lastName")} *</span><input name="lastName" required autoComplete="family-name" defaultValue={v.lastName ?? prefill.lastName ?? ""} className={input} /></label>
-            <label><span className={label}>{ta("phone")} *</span><input name="phone" type="tel" inputMode="tel" required autoComplete="tel" placeholder="+998 90 123 45 67" defaultValue={v.phone ?? prefill.phone ?? "+998 "} className={`${input} price`} /></label>
+            <label><span className={label}>{ta("firstName")} *</span><input name="firstName" required autoComplete="given-name" placeholder={tl("firstNamePh")} defaultValue={v.firstName ?? prefill.firstName ?? ""} className={input} {...inv("firstName")} />{errText("firstName")}</label>
+            <label><span className={label}>{ta("lastName")} *</span><input name="lastName" required autoComplete="family-name" placeholder={tl("lastNamePh")} defaultValue={v.lastName ?? prefill.lastName ?? ""} className={input} {...inv("lastName")} />{errText("lastName")}</label>
+            <div><span className={label}>{ta("phone")} *</span><div className="mt-1.5"><PhoneInput name="phone" defaultValue={v.phone ?? prefill.phone ?? ""} invalid={Boolean(fe.phone)} describedBy={fe.phone ? "co-phone-err" : undefined} /></div>{errText("phone")}</div>
             <label><span className={label}>{ta("email")} ({ta("optional")})</span><input name="email" type="email" inputMode="email" autoComplete="email" defaultValue={v.email ?? prefill.email ?? ""} className={input} /></label>
           </div>
         </fieldset>
@@ -69,14 +107,15 @@ export function CheckoutForm({
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <label className="sm:col-span-2">
               <span className={label}>{t("region")} *</span>
-              <select name="region" required value={region} onChange={(e) => setRegion(e.target.value)} className={input}>
+              <select name="region" required value={region || v.region || ""} onChange={(e) => setRegion(e.target.value)} className={input} {...inv("region")}>
                 <option value="" disabled>{t("selectRegion")}</option>
                 {regions.map((r) => <option key={r} value={r}>{r}</option>)}
               </select>
+              {errText("region")}
             </label>
-            <label className="sm:col-span-2"><span className={label}>{t("district")} *</span><input name="district" required autoComplete="address-level2" defaultValue={v.district} className={input} /></label>
-            <label className="sm:col-span-2"><span className={label}>{t("street")} *</span><input name="street" required autoComplete="address-line1" defaultValue={v.street} className={input} /></label>
-            <label><span className={label}>{t("house")} *</span><input name="house" required defaultValue={v.house} className={input} /></label>
+            <label className="sm:col-span-2"><span className={label}>{t("district")} *</span><input name="district" required autoComplete="address-level2" defaultValue={v.district} className={input} {...inv("district")} />{errText("district")}</label>
+            <label className="sm:col-span-2"><span className={label}>{t("street")} *</span><input name="street" required autoComplete="address-line1" defaultValue={v.street} className={input} {...inv("street")} />{errText("street")}</label>
+            <label><span className={label}>{t("house")} *</span><input name="house" required defaultValue={v.house} className={input} {...inv("house")} />{errText("house")}</label>
             <label><span className={label}>{t("apartment")}</span><input name="apartment" defaultValue={v.apartment} className={input} /></label>
             <label className="sm:col-span-2">
               <span className={label}>{t("comment")}</span>
@@ -144,7 +183,8 @@ export function CheckoutForm({
           <span className="price text-xl">{money(total)}</span>
         </div>
         {err && <p role="alert" className="mt-5 text-sm text-danger">{err}</p>}
-        <button type="submit" disabled={pending || !delivery} className="btn btn-primary mt-6 w-full disabled:opacity-50">{t("placeOrder")}</button>
+        {Object.keys(fe).length > 0 && <p role="alert" className="mt-5 text-sm text-danger">{t("errors.CHECK_FIELDS")}</p>}
+        <button type="submit" disabled={pending || !delivery} className="btn btn-primary mt-6 w-full disabled:opacity-50">{pending ? "…" : t("placeOrder")}</button>
       </aside>
     </form>
   );

@@ -45,6 +45,19 @@ export async function setOrderStatusAction(form: FormData) {
   revalidatePath("/", "layout");
 }
 
+/** День доставки, который увидит покупатель в чеке. Пустое значение — снять дату. */
+export async function setDeliveryDateAction(form: FormData) {
+  const admin = await requireAdmin("orders:write");
+  const id = String(form.get("id") ?? "");
+  const raw = String(form.get("deliveryDate") ?? "").trim();
+  if (raw && !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return;
+  const date = raw ? new Date(`${raw}T00:00:00Z`) : null;
+  if (date && Number.isNaN(date.getTime())) return;
+  await prisma.order.update({ where: { id }, data: { deliveryDate: date } });
+  await prisma.auditLog.create({ data: { actorId: admin.id, action: "order.delivery_date", entity: "Order", entityId: id, diff: { deliveryDate: raw || null } } });
+  revalidatePath("/admin", "layout");
+}
+
 // ── Промокоды ───────────────────────────────────────
 
 const couponSchema = z.object({

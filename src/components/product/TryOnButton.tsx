@@ -11,12 +11,13 @@ interface RealtimeModel { fps?: number; width?: number; height?: number }
 interface RealtimeSession {
   set(state: { prompt?: string; image?: Blob; enhance?: boolean }): Promise<unknown> | unknown;
   disconnect(): Promise<unknown> | unknown;
+  on?(event: string, cb: (arg: unknown) => void): void;
 }
 interface DecartSdk {
   models: { realtime(id: string): RealtimeModel };
-  createDecartClient(opts: { apiKeyProvider: () => Promise<string> }): {
+  createDecartClient(opts: { apiKey: string }): {
     realtime: {
-      connect(stream: MediaStream, opts: { model: RealtimeModel; mirror?: string; onRemoteStream: (s: MediaStream) => void }): Promise<RealtimeSession>;
+      connect(stream: MediaStream, opts: { model: RealtimeModel; onRemoteStream: (s: MediaStream) => void }): Promise<RealtimeSession>;
     };
   };
 }
@@ -35,6 +36,7 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
   const t = useTranslations("product");
   const [phase, setPhase] = useState<Phase>("closed");
   const [err, setErr] = useState<ErrKey>("generic");
+  const [detail, setDetail] = useState("");
   const [left, setLeft] = useState(TRY_ON_MAX_SECONDS);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -44,11 +46,22 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
   const runRef = useRef(0); // отменяет устаревший запуск, если окно закрыли во время подключения
 
   const garment = useCallback(async () => {
-    const blob = await fetch(imageUrl).then((r) => {
+    const src = await fetch(imageUrl).then((r) => {
       if (!r.ok) throw new Error(`IMAGE_${r.status}`);
       return r.blob();
     });
-    return { prompt: tryOnPrompt(categorySlug, colorCode), image: blob, enhance: true };
+    // Как в примере Decart: JPEG на белом фоне, не больше 1024px (WebP модель может не принять)
+    const bmp = await createImageBitmap(src);
+    const k = Math.min(1, 1024 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * k) || 512;
+    c.height = Math.round(bmp.height * k) || 512;
+    const ctx = c.getContext("2d")!;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(bmp, 0, 0, c.width, c.height);
+    const image = await new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("IMAGE_ENCODE"))), "image/jpeg", 0.9));
+    return { prompt: tryOnPrompt(categorySlug, colorCode), image, enhance: false };
   }, [imageUrl, categorySlug, colorCode]);
 
   const stop = useCallback(async () => {
@@ -76,22 +89,15 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
     try {
       const sdk = (await import("@decartai/sdk")) as unknown as DecartSdk;
       const model = sdk.models.realtime(TRY_ON_MODEL);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          facingMode: "user",
-          ...(model.width ? { width: { ideal: model.width } } : {}),
-          ...(model.height ? { height: { ideal: model.height } } : {}),
-          ...(model.fps ? { frameRate: { ideal: model.fps } } : {}),
-        },
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: "user" } });
       if (run !== runRef.current) { stream.getTracks().forEach((tr) => tr.stop()); return; }
       streamRef.current = stream;
 
-      const client = sdk.createDecartClient({ apiKeyProvider: fetchTryOnToken });
+      const apiKey = await fetchTryOnToken();
+      if (run !== runRef.current) { stream.getTracks().forEach((tr) => tr.stop()); return; }
+      const client = sdk.createDecartClient({ apiKey });
       const session = await client.realtime.connect(stream, {
         model,
-        mirror: "auto",
         onRemoteStream: (remote) => {
           if (videoRef.current) {
             videoRef.current.srcObject = remote;
@@ -102,6 +108,19 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
       });
       if (run !== runRef.current) { try { await session.disconnect(); } catch {} return; }
       sessionRef.current = session;
+      session.on?.("error", (err) => {
+        if (run !== runRef.current) return;
+        const m = err instanceof Error ? err.message : String(err);
+        reportClientError(Object.assign(new Error(`try-on session: ${m}`.slice(0, 500)), { digest: "try-on" }));
+        void stop();
+        setDetail(m.slice(0, 160));
+        setErr("generic");
+        setPhase("error");
+      });
+      session.on?.("connectionChange", (state) => {
+        if (run !== runRef.current) return;
+        if (state === "disconnected" && sessionRef.current) { void stop(); setPhase("intro"); }
+      });
       await session.set(await garment());
 
       timerRef.current = setInterval(() => {
@@ -114,6 +133,7 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
       if (run !== runRef.current) return;
       await stop();
       const name = e instanceof Error ? `${e.name}:${e.message}` : String(e);
+      setDetail(name.slice(0, 160));
       setErr(
         /NotAllowed|Permission|NotFound|NotReadable|Overconstrained/i.test(name) ? "camera"
           : /RATE_LIMITED|429/.test(name) ? "limit"
@@ -196,7 +216,12 @@ export function TryOnButton({ productName, imageUrl, categorySlug, colorCode }: 
                       <p className="text-sm text-champagne" aria-live="polite">{t("tryOnUi.connecting")}</p>
                     </>
                   )}
-                  {phase === "error" && <p role="alert" className="max-w-xs text-sm text-danger">{t(`tryOnUi.err.${err}`)}</p>}
+                  {phase === "error" && (
+                    <div role="alert" className="max-w-xs">
+                      <p className="text-sm text-danger">{t(`tryOnUi.err.${err}`)}</p>
+                      {detail && <p className="mt-2 break-words text-[0.65rem] text-muted">{detail}</p>}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

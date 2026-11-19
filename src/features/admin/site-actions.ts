@@ -114,6 +114,8 @@ export async function savePaymentDeliveryAction(_prev: FormState, form: FormData
   const pickupAddr = String(form.get("pickupAddr") ?? "").trim().slice(0, 300);
   if (on("pickup") && !pickupAddr) return { error: "Olib ketish punkti manzilini yozing." };
   const eta = String(form.get("etaDays") ?? "").trim().slice(0, 10);
+  if (!on("cod")) return { error: "«Yetkazib berishda toʻlash» oʻchsa, mijozlar buyurtma bera olmaydi (Payme/Click hali ulanmagan)." };
+  if (!on("courier") && !on("pickup")) return { error: "Kamida bitta yetkazib berish usulini yoqing — aks holda buyurtma berib boʻlmaydi." };
 
   await prisma.paymentMethodConfig.upsert({
     where: { provider: "CASH_ON_DELIVERY" },

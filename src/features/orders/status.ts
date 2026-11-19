@@ -25,7 +25,8 @@ export async function changeOrderStatus(orderId: string, to: OrderStatus, actorI
 
     const shippedBefore = ["SHIPPED", "DELIVERED"].includes(from);
 
-    if (to === "SHIPPED") {
+    // Списание со склада — при отправке (или сразу при «Yetkazildi», если «Yoʻlda» пропустили)
+    if (to === "SHIPPED" || (to === "DELIVERED" && !shippedBefore)) {
       for (const i of order.items) {
         if (!i.variantId) continue;
         await tx.$executeRaw`UPDATE "Inventory" SET "quantity" = "quantity" - ${i.quantity}, "reserved" = GREATEST("reserved" - ${i.quantity}, 0), "updatedAt" = NOW()
@@ -38,6 +39,14 @@ export async function changeOrderStatus(orderId: string, to: OrderStatus, actorI
       for (const i of order.items) {
         if (!i.variantId) continue;
         await tx.$executeRaw`UPDATE "Inventory" SET "reserved" = GREATEST("reserved" - ${i.quantity}, 0), "updatedAt" = NOW() WHERE "variantId" = ${i.variantId}`;
+      }
+    }
+    // Отмена уже отправленного заказа (вернули) — товар снова на складе
+    if (to === "CANCELLED" && shippedBefore) {
+      for (const i of order.items) {
+        if (!i.variantId) continue;
+        await tx.$executeRaw`UPDATE "Inventory" SET "quantity" = "quantity" + ${i.quantity}, "updatedAt" = NOW() WHERE "variantId" = ${i.variantId}`;
+        if (i.productId) await tx.product.updateMany({ where: { id: i.productId, salesCount: { gte: i.quantity } }, data: { salesCount: { decrement: i.quantity } } });
       }
     }
 

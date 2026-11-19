@@ -4,14 +4,15 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { normalizeUzPhone } from "@/lib/phone";
+import { capitalizeName, uzPhoneDigits } from "@/lib/validate-contact";
+import { validateCheckout, type FieldErrors } from "./checkout-validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { getSessionUser } from "@/features/auth/session";
 import { resolveCart } from "@/services/cart";
 import { isLocale } from "@/i18n/routing";
 import { CheckoutError, placeOrder } from "./place-order";
 
-export type CheckoutState = { error?: string; values?: Record<string, string> } | null;
+export type CheckoutState = { error?: string; fields?: FieldErrors; values?: Record<string, string> } | null;
 
 const schema = z.object({
   firstName: z.string().trim().min(1).max(60),
@@ -33,6 +34,8 @@ export async function checkoutAction(_prev: CheckoutState, form: FormData): Prom
   const locale = isLocale(localeRaw) ? localeRaw : "uz";
 
   const values = Object.fromEntries([...form.entries()].filter(([k]) => !k.startsWith("$") && k !== "locale").map(([k, v]) => [k, String(v).slice(0, 500)]));
+  const fields = validateCheckout(values);
+  if (Object.keys(fields).length) return { error: "CHECK_FIELDS", fields, values };
   const parsed = schema.safeParse(values);
   if (!parsed.success) {
     const field = String(parsed.error.issues[0]?.path[0] ?? "");
@@ -41,8 +44,7 @@ export async function checkoutAction(_prev: CheckoutState, form: FormData): Prom
     return { error: "INVALID_INPUT", values };
   }
   const d = parsed.data;
-  const phone = normalizeUzPhone(d.phone);
-  if (!phone) return { error: "INVALID_PHONE", values };
+  const phone = `+998${uzPhoneDigits(d.phone)}`;
 
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -57,8 +59,8 @@ export async function checkoutAction(_prev: CheckoutState, form: FormData): Prom
       cartId: cart.id,
       userId: user?.id ?? null,
       locale,
-      firstName: d.firstName,
-      lastName: d.lastName,
+      firstName: capitalizeName(d.firstName),
+      lastName: capitalizeName(d.lastName),
       phone,
       email: d.email || user?.email || null,
       address: { region: d.region, district: d.district, street: d.street, house: d.house, apartment: d.apartment || null },

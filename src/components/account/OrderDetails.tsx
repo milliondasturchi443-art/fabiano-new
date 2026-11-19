@@ -44,6 +44,12 @@ export async function OrderDetails({ order, locale }: { order: OrderView; locale
           <p className="eyebrow text-muted">{t("status")}</p>
           <p className="mt-2 text-base">{t(`statuses.${order.status}`)}</p>
         </div>
+        {order.deliveryDate && (
+          <div>
+            <p className="eyebrow text-muted">{(await getTranslations("receipt"))("deliveryDate")}</p>
+            <p className="mt-2 text-base capitalize">{order.deliveryDate.toLocaleDateString(locale === "ru" ? "ru-RU" : locale === "en" ? "en-GB" : "uz-Latn-UZ", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" })}</p>
+          </div>
+        )}
         <div>
           <p className="eyebrow text-muted">{t("payment")}</p>
           <p className="mt-2">{payment?.provider === "CASH_ON_DELIVERY" ? tk("cod") : payment?.provider ?? "—"}</p>

@@ -107,7 +107,17 @@ async function main() {
 
   // Все платёжные методы выключены: включаются в Dashboard после настройки credentials.
   for (const provider of ["PAYME", "CLICK", "CASH_ON_DELIVERY"] as const) {
-    await prisma.paymentMethodConfig.upsert({ where: { provider }, create: { provider, isEnabled: false }, update: {} });
+    await prisma.paymentMethodConfig.upsert({ where: { provider }, create: { provider, isEnabled: provider === "CASH_ON_DELIVERY" }, update: {} });
+  }
+
+  // Магазин должен принимать заказы «из коробки»: если ничего не включено — оплата при получении и бесплатный курьер.
+  const anyPayment = await prisma.paymentMethodConfig.count({ where: { isEnabled: true } });
+  if (anyPayment === 0) await prisma.paymentMethodConfig.update({ where: { provider: "CASH_ON_DELIVERY" }, data: { isEnabled: true } });
+  const anyDelivery = await prisma.deliveryMethod.count({ where: { isEnabled: true } });
+  if (anyDelivery === 0) {
+    const courier = await prisma.deliveryMethod.findFirst({ where: { type: "COURIER" } });
+    if (courier) await prisma.deliveryMethod.update({ where: { id: courier.id }, data: { isEnabled: true } });
+    else await prisma.deliveryMethod.create({ data: { type: "COURIER", names: { uz: "Kuryer orqali", ru: "Курьером", en: "Courier" }, price: "0", etaDays: "1–3", isEnabled: true, sortOrder: 0 } });
   }
 
   // Информационные страницы: создаются один раз, правки администратора не перезаписываются

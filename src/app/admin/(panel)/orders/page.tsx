@@ -29,6 +29,7 @@ export default async function AdminOrders() {
       total: money(o.grandTotal),
       count: o.items.reduce((n, i) => n + i.quantity, 0),
       status: o.status,
+      deliveryDate: o.deliveryDate ? o.deliveryDate.toISOString().slice(0, 10) : "",
       next: [...ORDER_STATUS_TRANSITIONS[o.status as OrderStatus]],
       address: [a.region, a.district, a.street, a.house && `${a.house}-uy`, a.apartment && `${a.apartment}-xonadon`].filter(Boolean).join(", "),
       comment: o.customerComment ?? "",

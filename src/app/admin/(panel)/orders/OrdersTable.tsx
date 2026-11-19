@@ -2,16 +2,23 @@
 
 import { Fragment, useMemo, useState } from "react";
 import Link from "next/link";
-import { setOrderStatusAction } from "@/features/admin/store-actions";
+import { setDeliveryDateAction, setOrderStatusAction } from "@/features/admin/store-actions";
 import { ORDER_ST, ORDER_STATUS, PROVIDER } from "@/components/admin/labels";
 
 export interface OrderRow {
   id: string; number: string; date: string; name: string; phone: string; phoneRaw: string;
-  total: string; count: number; status: string; next: string[];
+  total: string; count: number; status: string; next: string[]; deliveryDate: string;
   address: string; comment: string; delivery: string; payment: string;
   items: { name: string; color: string; size: string; qty: number; total: string }[];
   search: string;
 }
+
+const MONTHS = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avg", "sen", "okt", "noy", "dek"];
+const fmtDay = (iso: string) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d}-${MONTHS[(m ?? 1) - 1]} ${y}`;
+};
+const today = () => new Date(Date.now() + 5 * 3600_000).toISOString().slice(0, 10);
 
 export function OrdersTable({ rows }: { rows: OrderRow[] }) {
   const [q, setQ] = useState("");
@@ -37,10 +44,10 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
       </div>
       <div className="atw">
         <table className="atbl">
-          <thead><tr><th>Raqam</th><th>Sana</th><th>Mijoz</th><th>Telefon</th><th>Soni</th><th>Summa</th><th>Holat</th></tr></thead>
+          <thead><tr><th>Raqam</th><th>Sana</th><th>Mijoz</th><th>Telefon</th><th>Soni</th><th>Summa</th><th>Yetkazish kuni</th><th>Holat</th></tr></thead>
           <tbody>
             {list.length === 0 && (
-              <tr><td colSpan={7} style={{ textAlign: "center", padding: 46, color: "var(--mut)" }}>{rows.length ? "Hech narsa topilmadi" : "Hozircha buyurtmalar yoʻq"}</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: "center", padding: 46, color: "var(--mut)" }}>{rows.length ? "Hech narsa topilmadi" : "Hozircha buyurtmalar yoʻq"}</td></tr>
             )}
             {list.map((o) => (
               <Fragment key={o.id}>
@@ -51,11 +58,12 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                   <td className="pn">{o.phone}</td>
                   <td>{o.count}</td>
                   <td className="pn">{o.total}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{o.deliveryDate ? fmtDay(o.deliveryDate) : <span style={{ color: "var(--mut)" }}>—</span>}</td>
                   <td><span className={`st ${ORDER_ST[o.status]}`}>{ORDER_STATUS[o.status]?.label}</span></td>
                 </tr>
                 {open === o.id && (
                   <tr>
-                    <td colSpan={7} className="od">
+                    <td colSpan={8} className="od">
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 24 }}>
                         <div>
                           <h5>MIJOZ VA MANZIL</h5>
@@ -72,7 +80,14 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                           <p><b>Jami: {o.total}</b></p>
                         </div>
                       </div>
-                      <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
+                      <form action={setDeliveryDateAction} style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
+                        <input type="hidden" name="id" value={o.id} />
+                        <span style={{ fontSize: 12, color: "var(--mut)" }}>Yetkazib berish kuni:</span>
+                        <input type="date" name="deliveryDate" defaultValue={o.deliveryDate} min={today()} className="inp inp-sm" style={{ width: 170, colorScheme: "dark" }} />
+                        <button type="submit" className="mb">Saqlash</button>
+                        {o.deliveryDate && <span style={{ fontSize: 12, color: "var(--ok)" }}>✓ Mijoz chekida koʻrinadi</span>}
+                      </form>
+                      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
                         <span style={{ fontSize: 12, color: "var(--mut)" }}>Holat:</span>
                         <span className="mb on">{ORDER_STATUS[o.status]?.label}</span>
                         {o.next.map((s) => (

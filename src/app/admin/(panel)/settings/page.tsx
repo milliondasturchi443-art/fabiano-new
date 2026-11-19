@@ -84,7 +84,7 @@ export default async function AdminSettings() {
             <b>Decart Lucy V-TON <span className={`st ${decartReady && s?.tryOnEnabled ? "s3" : "s0"}`} style={{ marginLeft: 6 }}>{!decartReady ? "kalit yoʻq" : s?.tryOnEnabled ? "yoqilgan" : "oʻchirilgan"}</span></b>
             <span className="d">
               {decartReady
-                ? "Xaridor mahsulot sahifasida kamerani yoqadi va kiyimni real vaqtda ustida koʻradi. Rasmi bor barcha mahsulotlarda ishlaydi. Har bir seans 90 soniyagacha, bir IP uchun soatiga 8 ta."
+                ? "Xaridor mahsulot sahifasida kamerani yoqadi va kiyimni real vaqtda ustida koʻradi. Rasmi bor barcha mahsulotlarda ishlaydi. Har bir seans 90 soniyagacha, bir IP uchun soatiga 20 ta."
                 : "Ishlashi uchun platform.decart.ai’dan API kalit oling va Render → Environment’ga DECART_API_KEY sifatida qoʻshing."}
             </span>
           </div>

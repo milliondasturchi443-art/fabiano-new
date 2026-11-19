@@ -457,6 +457,7 @@ model Order {
   deliverySnapshot Json        // {type, name, price} на момент заказа
 
   couponCode    String?
+  deliveryDate  DateTime?     @db.Date // день доставки, который назначил админ (видит покупатель в чеке)
   guestAccessTokenHash String? // для просмотра гостевого заказа по ссылке
   reservationExpiresAt DateTime? // резерв остатков для неоплаченных онлайн-заказов
   createdAt     DateTime      @default(now())
