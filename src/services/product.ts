@@ -127,6 +127,13 @@ export function anywearReady(): boolean {
   return process.env.ANYWEAR_ENABLED === "1";
 }
 
+/** Включён ли на сайте виджет Anywear (тогда под «Hozir sotib olish» — кнопка, открывающая его окно). */
+export async function isAnywearActive(): Promise<boolean> {
+  if (!anywearReady()) return false;
+  const s = await prisma.storeSettings.findUnique({ where: { id: "default" }, select: { tryOnProvider: true } });
+  return s?.tryOnProvider === "anywear";
+}
+
 export async function isTryOnEnabledFor(product: ProductDetail): Promise<boolean> {
   if (!process.env.DECART_API_KEY || product.images.length === 0) return false;
   const s = await prisma.storeSettings.findUnique({ where: { id: "default" }, select: { tryOnProvider: true } });

@@ -12,9 +12,10 @@ import type { ProductDetail as Product } from "@/services/product";
 import { Gallery } from "./Gallery";
 import { SizeGuideDialog } from "./SizeGuideDialog";
 import { TryOnButton } from "./TryOnButton";
+import { AnywearTryOnButton } from "./AnywearTryOnButton";
 import { WishlistButton } from "./WishlistButton";
 
-export function ProductDetail({ product, requestedColor, tryOn, deliveryNote }: { product: Product; requestedColor?: string | null; tryOn: boolean; deliveryNote?: string | null }) {
+export function ProductDetail({ product, requestedColor, tryOn, anywear, deliveryNote }: { product: Product; requestedColor?: string | null; tryOn: boolean; anywear?: boolean; deliveryNote?: string | null }) {
   const t = useTranslations("product");
   const tc = useTranslations("cart");
   const locale = useLocale() as AppLocale;
@@ -167,6 +168,7 @@ export function ProductDetail({ product, requestedColor, tryOn, deliveryNote }: 
           <button type="button" id="buy-now-button" onClick={() => add(true)} disabled={pending || soldOut} className="buy-now btn btn-outline w-full disabled:opacity-40">
             {t("buyNow")}
           </button>
+          {anywear && <AnywearTryOnButton />}
           {tryOn && (product.tryOnAsset.url ?? images[0]?.url) && (
             <TryOnButton
               productName={product.name}
